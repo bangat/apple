@@ -1,115 +1,86 @@
-
-<!DOCTYPE html>  <html lang="ko">  
-<head>  
+<!DOCTYPE html>  <html lang="ko">  <head>  
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  
     <title>윤서짱</title>  
     <style>  
-        * { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-}  
-
-body {   
-    font-family: Arial, sans-serif;   
-    text-align: center;   
-    background: #f4f4f4;   
-    touch-action: none;   
-    display: flex;   
-    flex-direction: column;   
-    align-items: center;   
-    height: 100vh;  
-    justify-content: flex-start;  
-}  
-
-#header {  
-    background: linear-gradient(45deg, #ff9800, #ff5722);  
-    color: white;  
-    padding: 15px 0;  
-    font-size: 1.2rem;  
-    font-weight: bold;  
-    border-bottom: 5px solid #d84315;  
-    width: 100%;  
-}  
-
-/* 📌 게임 컨테이너 (반응형 적용) */
-#game-container {  
-    width: 90vw;  /* 화면 너비의 90% */
-    max-width: 600px;  /* 최대 크기 제한 */
-    min-width: 320px;  /* 최소 크기 제한 */
-    background: white;  
-    padding: 10px;  
-    border-radius: 10px;  
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);  
-    display: flex;  
-    flex-direction: column;  
-    align-items: center;  
-}  
-
-/* 📌 게임 보드 (반응형 적용) */
-#game-board {  
-    display: grid;  
-    grid-template-columns: repeat(auto-fit, minmax(30px, 1fr)); /* 가변 크기 설정 */
-    gap: 5px;  
-    width: 100%;  
-    max-width: 90vw;  
-}  
-
-/* 📌 숫자 버튼 (반응형 적용) */
-.apple {  
-    width: 10vw;  /* 뷰포트 기준 크기 */
-    max-width: 60px;  /* 최대 크기 제한 */
-    min-width: 30px;  /* 최소 크기 제한 */
-    aspect-ratio: 1;  /* 정사각형 유지 */
-    background: orange;  
-    color: white;  
-    font-size: clamp(1rem, 2vw, 1.5rem);  /* 반응형 글자 크기 */
-    display: flex;  
-    align-items: center;  
-    justify-content: center;  
-    border-radius: 50%;  
-    user-select: none;  
-    transition: background 0.2s;  
-    visibility: visible;  
-}  
-
-/* 선택된 숫자 강조 */
-.selected { 
-    background: red; 
-}  
-
-/* 버튼 컨테이너 */
-.btn-container {  
-    display: flex;  
-    justify-content: center;  
-    gap: 10px;  
-    margin-top: 15px;  
-}  
-
-button {  
-    padding: 12px 20px;  
-    font-size: 1rem;  
-    cursor: pointer;  
-    border: none;  
-    border-radius: 5px;  
-    color: white;  
-}  
-
-#restart-btn { background: #007bff; }  
-#pause-btn { background: #ff5722; }  
-#resume-btn { background: #4caf50; display: none; }  
-
-/* 남은 시간 깜빡임 효과 */
-@keyframes blink {  
-    0% { color: red; }  
-    50% { color: white; }  
-    100% { color: red; }  
-}  
-
-#timer.blinking {  
-    animation: blink 1s infinite;  
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }  
+        body {   
+            font-family: Arial, sans-serif;   
+            text-align: center;   
+            background: #f4f4f4;   
+            touch-action: none;   
+            display: flex;   
+            flex-direction: column;   
+            align-items: center;   
+            height: 100vh;  
+            justify-content: flex-start;  
+        }  
+        #header {  
+            background: linear-gradient(45deg, #ff9800, #ff5722);  
+            color: white;  
+            padding: 15px 0;  
+            font-size: 1.2rem;  
+            font-weight: bold;  
+            border-bottom: 5px solid #d84315;  
+            width: 100%;  
+        }  
+        #game-container {  
+            width: 100%;  
+            max-width: 450px;  
+            background: white;  
+            padding: 10px;  
+            border-radius: 10px;  
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+        }  
+        #game-board {  
+            display: grid;  
+            grid-template-columns: repeat(10, 1fr);  
+            gap: 5px;  
+            padding: 10px;  
+        }  
+        .apple {  
+            width: 100%;  
+            aspect-ratio: 1;  
+            background: orange;  
+            color: white;  
+            font-size: 1.5rem;  
+            display: flex;  
+            align-items: center;  
+            justify-content: center;  
+            border-radius: 50%;  
+            user-select: none;  
+            transition: background 0.2s;  
+            visibility: visible;  
+        }  
+        .selected { background: red; }  
+        .btn-container {  
+            display: flex;  
+            justify-content: center;  
+            gap: 10px;  
+            margin-top: 15px;  
+        }  
+        button {  
+            padding: 12px 20px;  
+            font-size: 1rem;  
+            cursor: pointer;  
+            border: none;  
+            border-radius: 5px;  
+            color: white;  
+        }  
+        #restart-btn { background: #007bff; }  
+        #pause-btn { background: #ff5722; }  
+        #resume-btn { background: #4caf50; display: none; }  
+        @keyframes blink {  
+            0% { color: red; }  
+            50% { color: white; }  
+            100% { color: red; }  
+        }  
+        #timer.blinking {  
+            animation: blink 1s infinite;  
+        }  
     </style>  
 </head>  
 <body>  <div id="header">  
@@ -126,124 +97,125 @@ button {
     const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;  
     let selectedApples = [], apples = [], isDragging = false, score = 0;  
     let startIdx = null, endIdx = null, timer = 120, timerInterval, isPaused = false;  
-    const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');  
-  
-    function getRowCol(index) {  
-        return { row: Math.floor(index / COLS), col: index % COLS };  
-    }  
-  
-    function generateSolvableNumbers() {  
-        let numbers = [], availablePairs = [];  
-        for (let i = 1; i <= 9; i++) availablePairs.push([i, 10 - i]);  
-        while (numbers.length < boardSize) {  
-            let pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];  
-            numbers.push(pair[0], pair[1]);  
-        }  
-        return numbers.sort(() => Math.random() - 0.5);  
-    }  
-  
-    function createBoard() {  
-        clearInterval(timerInterval);  
-        document.getElementById("timer").textContent = timer = 120;  
-        document.getElementById("score").textContent = "0점";  
-        score = 0;  
-        isPaused = false;  
-        document.getElementById("resume-btn").style.display = "none";  
-        document.getElementById("pause-btn").style.display = "inline-block";  
-  
-        const board = document.getElementById("game-board");  
-        board.innerHTML = "";  
-        apples = generateSolvableNumbers();  
-        for (let i = 0; i < boardSize; i++) {  
-            const apple = document.createElement("div");  
-            apple.classList.add("apple");  
-            apple.textContent = apples[i];  
-            apple.dataset.index = i;  
-            apple.addEventListener("touchstart", startSelection);  
-            apple.addEventListener("touchmove", selectApple);  
-            apple.addEventListener("touchend", endSelection);  
-            board.appendChild(apple);  
-        }  
-        startTimer();  
-    }  
-  
-    function startSelection(event) {  
-    event.preventDefault();  
-    if (isPaused) return;  
-    isDragging = true;  
-    selectedApples = [];  
-    startIdx = Number(event.target.dataset.index);  
-    selectApple(event);  
-  
-    // 터치 감 있는 잔진동 추가 (50ms 진동)  
-    if (navigator.vibrate) navigator.vibrate(50);  
+    const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');  function getRowCol(index) {  
+    return { row: Math.floor(index / COLS), col: index % COLS };  
 }  
-  
-    function selectApple(event) {  
-        event.preventDefault();  
-        if (!isDragging || isPaused) return;  
-        const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);  
-        if (!apple || !apple.classList.contains("apple")) return;  
-  
-        endIdx = Number(apple.dataset.index);  
-        updateSelection();  
+
+function generateSolvableNumbers() {  
+    let numbers = [], availablePairs = [];  
+    for (let i = 1; i <= 9; i++) availablePairs.push([i, 10 - i]);  
+    while (numbers.length < boardSize) {  
+        let pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];  
+        numbers.push(pair[0], pair[1]);  
     }  
-  
-    function updateSelection() {  
-        selectedApples.forEach(apple => apple.classList.remove("selected"));  
-        selectedApples = [];  
-  
-        if (startIdx === null || endIdx === null) return;  
-  
-        let { row: startRow, col: startCol } = getRowCol(startIdx);  
-        let { row: endRow, col: endCol } = getRowCol(endIdx);  
-  
-        let minRow = Math.min(startRow, endRow);  
-        let maxRow = Math.max(startRow, endRow);  
-        let minCol = Math.min(startCol, endCol);  
-        let maxCol = Math.max(startCol, endCol);  
-  
-        for (let r = minRow; r <= maxRow; r++) {  
-            for (let c = minCol; c <= maxCol; c++) {  
-                let index = r * COLS + c;  
-                let apple = document.querySelector(`.apple[data-index='${index}']`);  
-                if (apple && apple.style.visibility !== "hidden") {  
-                    apple.classList.add("selected");  
-                    selectedApples.push(apple);  
-                }  
+    return numbers.sort(() => Math.random() - 0.5);  
+}  
+
+function createBoard() {  
+    clearInterval(timerInterval);  
+    document.getElementById("timer").textContent = timer = 120;  
+    document.getElementById("score").textContent = "0점";  
+    score = 0;  
+    isPaused = false;  
+    document.getElementById("resume-btn").style.display = "none";  
+    document.getElementById("pause-btn").style.display = "inline-block";  
+
+    const board = document.getElementById("game-board");  
+    board.innerHTML = "";  
+    apples = generateSolvableNumbers();  
+    for (let i = 0; i < boardSize; i++) {  
+        const apple = document.createElement("div");  
+        apple.classList.add("apple");  
+        apple.textContent = apples[i];  
+        apple.dataset.index = i;  
+        apple.addEventListener("touchstart", startSelection);  
+        apple.addEventListener("touchmove", selectApple);  
+        apple.addEventListener("touchend", endSelection);  
+        board.appendChild(apple);  
+    }  
+    startTimer();  
+}  
+
+function startSelection(event) {  
+event.preventDefault();  
+if (isPaused) return;  
+isDragging = true;  
+selectedApples = [];  
+startIdx = Number(event.target.dataset.index);  
+selectApple(event);  
+
+// 터치 감 있는 잔진동 추가 (50ms 진동)  
+if (navigator.vibrate) navigator.vibrate(50);
+
+}
+
+function selectApple(event) {  
+    event.preventDefault();  
+    if (!isDragging || isPaused) return;  
+    const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);  
+    if (!apple || !apple.classList.contains("apple")) return;  
+
+    endIdx = Number(apple.dataset.index);  
+    updateSelection();  
+}  
+
+function updateSelection() {  
+    selectedApples.forEach(apple => apple.classList.remove("selected"));  
+    selectedApples = [];  
+
+    if (startIdx === null || endIdx === null) return;  
+
+    let { row: startRow, col: startCol } = getRowCol(startIdx);  
+    let { row: endRow, col: endCol } = getRowCol(endIdx);  
+
+    let minRow = Math.min(startRow, endRow);  
+    let maxRow = Math.max(startRow, endRow);  
+    let minCol = Math.min(startCol, endCol);  
+    let maxCol = Math.max(startCol, endCol);  
+
+    for (let r = minRow; r <= maxRow; r++) {  
+        for (let c = minCol; c <= maxCol; c++) {  
+            let index = r * COLS + c;  
+            let apple = document.querySelector(`.apple[data-index='${index}']`);  
+            if (apple && apple.style.visibility !== "hidden") {  
+                apple.classList.add("selected");  
+                selectedApples.push(apple);  
             }  
         }  
     }  
-  
-    function endSelection() {  
-        isDragging = false;  
-        if (isPaused) return;  
-  
-        let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);  
-        if (sum === 10) {  
-            selectedApples.forEach(apple => apple.style.visibility = "hidden");  
-            sound.play();  
-            score += selectedApples.length * 2;  
-            document.getElementById("score").textContent = `${score}점`;  
+}  
+
+function endSelection() {  
+    isDragging = false;  
+    if (isPaused) return;  
+
+    let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);  
+    if (sum === 10) {  
+        selectedApples.forEach(apple => apple.style.visibility = "hidden");  
+        sound.play();  
+        score += selectedApples.length * 2;  
+        document.getElementById("score").textContent = `${score}점`;  
+    }  
+    selectedApples.forEach(apple => apple.classList.remove("selected"));  
+}  
+
+function startTimer() {  
+    timerInterval = setInterval(() => {  
+        if (!isPaused) {  
+            timer--;  
+            document.getElementById("timer").textContent = `${timer}초`;  
+            if (timer <= 10) document.getElementById("timer").classList.add("blinking");  
+            if (timer <= 0) clearInterval(timerInterval);  
         }  
-        selectedApples.forEach(apple => apple.classList.remove("selected"));  
-    }  
-  
-    function startTimer() {  
-        timerInterval = setInterval(() => {  
-            if (!isPaused) {  
-                timer--;  
-                document.getElementById("timer").textContent = `${timer}초`;  
-                if (timer <= 10) document.getElementById("timer").classList.add("blinking");  
-                if (timer <= 0) clearInterval(timerInterval);  
-            }  
-        }, 1000);  
-    }  
-  
-    document.getElementById("restart-btn").addEventListener("click", createBoard);  
-    document.getElementById("pause-btn").addEventListener("click", () => { isPaused = true; document.getElementById("pause-btn").style.display = "none"; document.getElementById("resume-btn").style.display = "inline-block"; });  
-    document.getElementById("resume-btn").addEventListener("click", () => { isPaused = false; document.getElementById("resume-btn").style.display = "none"; document.getElementById("pause-btn").style.display = "inline-block"; });  
-  
-    createBoard();  
-</script>  </body>  
+    }, 1000);  
+}  
+
+document.getElementById("restart-btn").addEventListener("click", createBoard);  
+document.getElementById("pause-btn").addEventListener("click", () => { isPaused = true; document.getElementById("pause-btn").style.display = "none"; document.getElementById("resume-btn").style.display = "inline-block"; });  
+document.getElementById("resume-btn").addEventListener("click", () => { isPaused = false; document.getElementById("resume-btn").style.display = "none"; document.getElementById("pause-btn").style.display = "inline-block"; });  
+
+createBoard();
+
+</script>  </body>
+
 </html>
