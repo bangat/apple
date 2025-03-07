@@ -147,13 +147,16 @@
     }
 
     function startSelection(event) {
-        event.preventDefault();
-        if (isPaused) return;
-        isDragging = true;
-        selectedApples = [];
-        startIdx = Number(event.target.dataset.index);
-        selectApple(event);
-    }
+    event.preventDefault();
+    if (isPaused) return;
+    isDragging = true;
+    selectedApples = [];
+    startIdx = Number(event.target.dataset.index);
+    selectApple(event);
+
+    // 터치 감 있는 잔진동 추가 (50ms 진동)
+    if (navigator.vibrate) navigator.vibrate(50);
+}
 
     function selectApple(event) {
         event.preventDefault();
