@@ -112,7 +112,7 @@
 <body>
 <div id="header">
     <h1 style="font-size: 1.5rem;">10점 만들기 by 윤서</h1>
-    <p>남은시간 [ <span id="timer">120초</span> ] 점수 [ <span id="score">0점</span> ]</p>
+    <p>남은시간 [ <span id="timer">140초</span> ] 점수 [ <span id="score">0점</span> ]</p>
 </div>
 
     <div id="game-container">
@@ -129,7 +129,7 @@
 
     <script>
         const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;
-        let selectedApples = [], score = 0, totalScore = 280, isDragging = false, apples = [], timer = 120, timerInterval;
+        let selectedApples = [], score = 0, totalScore = 280, isDragging = false, apples = [], timer = 140, timerInterval;
         let gamePaused = false, dragDirection = null;
         const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');
 
@@ -149,7 +149,7 @@
 
         function createBoard() {
             clearInterval(timerInterval);
-            document.getElementById("timer").textContent = timer = 120;
+            document.getElementById("timer").textContent = timer = 140;
             document.getElementById("score").textContent = "0 / " + totalScore;
             score = 0;
             const board = document.getElementById("game-board");
