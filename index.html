@@ -3,84 +3,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  
     <title>윤서짱</title>  
     <style>  
-        * { margin: 0; padding: 0; box-sizing: border-box; }  
-        body {   
-            font-family: Arial, sans-serif;   
-            text-align: center;   
-            background: #f4f4f4;   
-            touch-action: none;   
-            display: flex;   
-            flex-direction: column;   
-            align-items: center;   
-            height: 100vh;  
-            justify-content: flex-start;  
-        }  
-        #header {  
-            background: linear-gradient(45deg, #ff9800, #ff5722);  
-            color: white;  
-            padding: 15px 0;  
-            font-size: 1.2rem;  
-            font-weight: bold;  
-            border-bottom: 5px solid #d84315;  
-            width: 100%;  
-        }  
-        #game-container {  
-            width: 100%;  
-            max-width: 450px;  
-            background: white;  
-            padding: 10px;  
-            border-radius: 10px;  
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);  
-            display: flex;  
-            flex-direction: column;  
-            align-items: center;  
-        }  
-        #game-board {  
-            display: grid;  
-            grid-template-columns: repeat(10, 1fr);  
-            gap: 5px;  
-            padding: 10px;  
-        }  
-        .apple {  
-            width: 100%;  
-            aspect-ratio: 1;  
-            background: orange;  
-            color: white;  
-            font-size: 1.5rem;  
-            display: flex;  
-            align-items: center;  
-            justify-content: center;  
-            border-radius: 50%;  
-            user-select: none;  
-            transition: background 0.2s;  
-            visibility: visible;  
-        }  
-        .selected { background: red; }  
-        .btn-container {  
-            display: flex;  
-            justify-content: center;  
-            gap: 10px;  
-            margin-top: 15px;  
-        }  
-        button {  
-            padding: 12px 20px;  
-            font-size: 1rem;  
-            cursor: pointer;  
-            border: none;  
-            border-radius: 5px;  
-            color: white;  
-        }  
-        #restart-btn { background: #007bff; }  
-        #pause-btn { background: #ff5722; }  
-        #resume-btn { background: #4caf50; display: none; }  
-        @keyframes blink {  
-            0% { color: red; }  
-            50% { color: white; }  
-            100% { color: red; }  
-        }  
-        #timer.blinking {  
-            animation: blink 1s infinite;  
-        }  
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    /* 동적 vh 사용을 위한 기본 설정 */
+    height: 100%;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f4f4f4;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* iOS Safari 등에서 브라우저 UI 문제를 해결하기 위해 calc(var(--vh) * 100)를 사용 */
+    height: calc(var(--vh, 1vh) * 100);
+    justify-content: flex-start;
+    /* 안전 영역(padding) 적용 */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#header {
+    background: linear-gradient(45deg, #ff9800, #ff5722);
+    color: white;
+    padding: 15px 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-bottom: 5px solid #d84315;
+    width: 100%;
+}
+
+#game-container {
+    width: 90vw;              /* 화면 너비의 90% */
+    max-width: 600px;         /* 최대 크기 제한 */
+    min-width: 320px;         /* 최소 크기 제한 */
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#game-board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);  /* 게임 로직에 맞게 10열 고정 */
+    gap: 5px;
+    padding: 10px;
+    width: 100%;
+}
+
+.apple {
+    width: 100%;
+    aspect-ratio: 1;
+    background: orange;
+    color: white;
+    font-size: clamp(1rem, 2vw, 1.5rem); /* 반응형 글자 크기 조절 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    user-select: none;
+    transition: background 0.2s;
+    visibility: visible;
+}
+
+.selected {
+    background: red;
+}
+
+.btn-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+
+#restart-btn {
+    background: #007bff;
+}
+
+#pause-btn {
+    background: #ff5722;
+}
+
+#resume-btn {
+    background: #4caf50;
+    display: none;
+}
+
+@keyframes blink {
+    0% { color: red; }
+    50% { color: white; }
+    100% { color: red; }
+}
+
+#timer.blinking {
+    animation: blink 1s infinite;
+}
+
+/* 작은 화면 대응 미디어 쿼리 */
+@media (max-width: 450px) {
+    #game-container {
+        width: 90vw;
+        max-width: 400px;
+    }
+    .apple {
+        font-size: 1.2rem;
+    }
+}
     </style>  
 </head>  
 <body>  <div id="header">  
