@@ -3,69 +3,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  
     <title>윤서짱</title>  
     <style>  
-        * {
+        /* 기본 리셋 */
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-html {
-    /* 동적 vh 사용을 위한 기본 설정 */
-    height: 100%;
-}
-
+/* body는 전체 화면에 맞춰 유연하게 사용 */
 body {
     font-family: Arial, sans-serif;
     text-align: center;
     background: #f4f4f4;
     touch-action: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* iOS Safari 등에서 브라우저 UI 문제를 해결하기 위해 calc(var(--vh) * 100)를 사용 */
-    height: calc(var(--vh, 1vh) * 100);
-    justify-content: flex-start;
-    /* 안전 영역(padding) 적용 */
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    /* flex 대신 일반적인 흐름 사용 (필요하다면 flex 유지 가능) */
+    min-height: 100vh;
 }
 
+/* 헤더: 전체 폭을 차지하도록 설정 */
 #header {
+    width: 100%;
     background: linear-gradient(45deg, #ff9800, #ff5722);
     color: white;
     padding: 15px 0;
     font-size: 1.2rem;
     font-weight: bold;
     border-bottom: 5px solid #d84315;
-    width: 100%;
 }
 
+/* 게임 컨테이너: 최대 폭 제한을 없애고 화면 전체 활용 */
 #game-container {
-    width: 90vw;              /* 화면 너비의 90% */
-    max-width: 600px;         /* 최대 크기 제한 */
-    min-width: 320px;         /* 최소 크기 제한 */
+    width: 100%;          /* 화면 전체 폭 사용 */
+    /* max-width: 450px;  <-- 이 부분 제거 */
     background: white;
     padding: 10px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    margin: 0 auto;       /* 가로 정중앙 정렬 */
 }
 
+/* 게임 보드: 10칸 고정이므로 전체 폭을 기준으로 칸 크기 결정 */
 #game-board {
     display: grid;
-    grid-template-columns: repeat(10, 1fr);  /* 게임 로직에 맞게 10열 고정 */
+    grid-template-columns: repeat(10, 1fr);
     gap: 5px;
     padding: 10px;
     width: 100%;
+    box-sizing: border-box;
 }
 
+/* 숫자(사과) 아이템: 각 칸에서 꽉 차도록, 글자도 크게 보이도록 조절 */
 .apple {
     width: 100%;
-    aspect-ratio: 1;
+    aspect-ratio: 1;           /* 정사각형 유지 */
     background: orange;
     color: white;
-    font-size: clamp(1rem, 2vw, 1.5rem); /* 반응형 글자 크기 조절 */
+    font-size: 1.5rem;         /* 기본 폰트 크기 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -79,6 +72,7 @@ body {
     background: red;
 }
 
+/* 버튼 컨테이너 */
 .btn-container {
     display: flex;
     justify-content: center;
@@ -108,25 +102,21 @@ button {
     display: none;
 }
 
+/* 남은 시간 깜빡임 효과 */
 @keyframes blink {
-    0% { color: red; }
-    50% { color: white; }
-    100% { color: red; }
+    0% {
+        color: red;
+    }
+    50% {
+        color: white;
+    }
+    100% {
+        color: red;
+    }
 }
 
 #timer.blinking {
     animation: blink 1s infinite;
-}
-
-/* 작은 화면 대응 미디어 쿼리 */
-@media (max-width: 450px) {
-    #game-container {
-        width: 90vw;
-        max-width: 400px;
-    }
-    .apple {
-        font-size: 1.2rem;
-    }
 }
     </style>  
 </head>  
