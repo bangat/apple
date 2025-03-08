@@ -188,6 +188,7 @@ function selectApple(event) {
 }  
 
 function updateSelection() {  
+    let previouslySelectedCount = selectedApples.length;
     selectedApples.forEach(apple => apple.classList.remove("selected"));  
     selectedApples = [];  
 
@@ -207,13 +208,16 @@ function updateSelection() {
             let index = r * COLS + c;  
             let apple = document.querySelector(`.apple[data-index='${index}']`);  
             if (apple && apple.style.visibility !== "hidden" && !selectedApples.includes(apple)) {  
-                apple.classList.add("selected");  
-                selectedApples.push(apple);  
-                newSelection = true;
+                if (!apple.classList.contains('selected')) {
+                    apple.classList.add("selected");  
+                    selectedApples.push(apple);
+                    newSelection = true;
+                }
             }  
         }  
     }  
-    // 새로운 사과가 선택되었을 때 진동 추가
+
+    // 진동은 새로 선택된 사과가 있을 때만 발생
     if (newSelection && navigator.vibrate) navigator.vibrate(50);
 }
 
