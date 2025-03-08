@@ -136,31 +136,34 @@ function generateSolvableNumbers() {
     return numbers.sort(() => Math.random() - 0.5);  
 }  
 
-function createBoard() {  
-    clearInterval(timerInterval);  
-    document.getElementById("timer").textContent = timer = 120;  
-    document.getElementById("score").textContent = "0점";  
-    score = 0;  
-    isPaused = false;  
-    document.getElementById("resume-btn").style.display = "none";  
-    document.getElementById("pause-btn").style.display = "inline-block";  
+function createBoard() {
+    clearInterval(timerInterval);
+    document.getElementById("timer").textContent = timer = 120;
+    document.getElementById("score").textContent = "0점";
+    score = 0;
+    isPaused = false;
+    document.getElementById("resume-btn").style.display = "none";
+    document.getElementById("pause-btn").style.display = "inline-block";
 
-    const board = document.getElementById("game-board");  
-    board.innerHTML = "";  
-    apples = generateSolvableNumbers();  
-    for (let i = 0; i < boardSize; i++) {  
-        const apple = document.createElement("div");  
-        apple.classList.add("apple");  
-        apple.textContent = apples[i];  
-        apple.dataset.index = i;  
-        apple.addEventListener("touchstart", startSelection);  
-        apple.addEventListener("touchmove", selectApple);  
-        apple.addEventListener("touchend", endSelection);  
-        board.appendChild(apple);  
-    }  
-    startTimer();  
-}  
-
+    const board = document.getElementById("game-board");
+    board.innerHTML = "";
+    apples = generateSolvableNumbers();
+    for (let i = 0; i < boardSize; i++) {
+        const apple = document.createElement("div");
+        apple.classList.add("apple");
+        apple.textContent = apples[i];
+        apple.dataset.index = i;
+        apple.addEventListener("touchstart", startSelection);
+        apple.addEventListener("touchmove", selectApple);
+        apple.addEventListener("touchend", endSelection);
+        // 각 사과에 대한 터치 시 진동 추가
+        apple.addEventListener("touchstart", () => {
+            if (navigator.vibrate) navigator.vibrate(50); // 50ms 진동
+        });
+        board.appendChild(apple);
+    }
+    startTimer();
+}
 function startSelection(event) {  
 event.preventDefault();  
 if (isPaused) return;  
