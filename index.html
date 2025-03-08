@@ -3,107 +3,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  
     <title>윤서짱</title>  
     <style>  
-        /* (1) 기본 스타일 & 리셋 */
-* {
-  margin: 0; 
-  padding: 0; 
-  box-sizing: border-box;
-}
+        /* (1) 전체 화면을 더 꽉 채우도록 조정 */
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-  text-align: center;
-  /* 화면이 세로로 스크롤될 수 있도록 */
-  min-height: 100vh; 
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* 세로 중앙 정렬 */
+    padding: 10px;
 }
 
-/* (2) 헤더: 전체 폭 차지 */
-#header {
-  background: linear-gradient(45deg, #ff9800, #ff5722);
-  color: white;
-  padding: 15px 0;
-  font-size: 1.2rem;
-  font-weight: bold;
-  border-bottom: 5px solid #d84315;
-  width: 100%;
-}
-
-/* (3) 게임 컨테이너: 가로로는 유연하게, 너무 크게는 제한 */
+/* (2) 게임 컨테이너 크기 조정 */
 #game-container {
-  width: 90%;        /* 화면 너비의 90% 사용 */
-  max-width: 1200px; /* 너무 커지지 않도록 제한 */
-  margin: 20px auto; /* 가운데 정렬 & 위아래 여백 */
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    width: 95vw;            /* 화면의 95% 사용 (너무 작지 않게) */
+    max-width: 1000px;      /* 너무 커지는 것을 방지 */
+    height: 85vh;           /* 세로 높이를 더 크게 설정하여 여백 감소 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* (4) 게임 보드: 10칸 고정, 전체 폭 채움 */
+/* (3) 게임 보드: 크기 조정하여 더 크게 표시 */
 #game-board {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr); /* 10열 고정 */
-  gap: 5px;
-  width: 100%;
-  padding: 10px 0;
-  box-sizing: border-box;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr); /* 10열 유지 */
+    gap: 6px;
+    width: 100%;
+    height: 100%; /* 전체 컨테이너를 채우도록 */
+    padding: 10px 0;
 }
 
-/* (5) 숫자(사과) 칸: 정사각형 + 글자 크기 자동 확장 */
+/* (4) 숫자(사과) 칸을 더 크게 */
 .apple {
-  aspect-ratio: 1;                          /* 정사각형 유지 */
-  background: orange;
-  color: white;
-  font-size: clamp(1rem, 2.5vw, 2rem);      /* 화면 크기에 따라 글자 크기 변화 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  user-select: none;
-  transition: background 0.2s;
-  visibility: visible;
+    width: 100%;
+    aspect-ratio: 1;  /* 정사각형 유지 */
+    font-size: clamp(1.5rem, 3vw, 3rem); /* 더 크게 설정 */
+    background: orange;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: background 0.2s;
 }
 
+/* 선택된 사과 강조 */
 .selected {
-  background: red;
+    background: red;
 }
 
-/* (6) 버튼 컨테이너 & 버튼 스타일 */
+/* (5) 버튼 컨테이너를 아래쪽으로 배치 */
 .btn-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    margin-top: auto; /* 아래쪽으로 밀어서 배치 */
 }
 
+/* 버튼 스타일 */
 button {
-  padding: 12px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  color: white;
+    padding: 15px 25px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    color: white;
 }
 
 #restart-btn {
-  background: #007bff;
+    background: #007bff;
 }
 #pause-btn {
-  background: #ff5722;
+    background: #ff5722;
 }
 #resume-btn {
-  background: #4caf50;
-  display: none;
+    background: #4caf50;
+    display: none;
 }
 
-/* (7) 남은 시간 깜빡임 */
+/* 남은 시간 깜빡임 효과 */
 @keyframes blink {
-  0% { color: red; }
-  50% { color: white; }
-  100% { color: red; }
+    0% { color: red; }
+    50% { color: white; }
+    100% { color: red; }
 }
 #timer.blinking {
-  animation: blink 1s infinite;
+    animation: blink 1s infinite;
 }
     </style>  
 </head>  
