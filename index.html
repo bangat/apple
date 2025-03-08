@@ -183,10 +183,13 @@ function selectApple(event) {
     const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);  
     if (!apple || !apple.classList.contains("apple")) return;  
 
-    endIdx = Number(apple.dataset.index);  
-    updateSelection();  
-}  
-
+    const currentIndex = Number(apple.dataset.index);
+    if (selectedApples.indexOf(apple) === -1) { // 새로운 사과가 선택됐다면
+        endIdx = currentIndex;  
+        updateSelection();  
+        if (navigator.vibrate) navigator.vibrate(50); // 진동 발생
+    }
+}
 function updateSelection() {  
     let previouslySelectedCount = selectedApples.length;
     selectedApples.forEach(apple => apple.classList.remove("selected"));  
