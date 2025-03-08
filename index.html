@@ -140,41 +140,37 @@ button {
 
 function generateSolvableNumbers() {
     let numbers = [];
-    let totalPairs = boardSize / 2; // 총 필요한 쌍의 수
-    let availablePairs = [];
-    
-    // 1부터 9까지의 숫자 쌍을 생성하여 가능한 모든 쌍을 저장
-    for (let i = 1; i < 10; i++) {
-        availablePairs.push([i, 10 - i]);
+    let countMap = new Map();
+    for (let i = 1; i <= 9; i++) {
+        countMap.set(i, 0);  // 각 숫자의 카운트를 초기화
     }
 
-    // 게임 보드를 채울 때까지 숫자 쌍 선택
+    // 각 숫자 쌍이 보드 사이즈의 1/10 만큼 정확하게 나타나도록 설정
     while (numbers.length < boardSize) {
-        let pairIndex = Math.floor(Math.random() * availablePairs.length);
-        let pair = availablePairs[pairIndex];
-
-        // 선택된 쌍을 배열에 추가
-        numbers.push(pair[0], pair[1]);
-
-        // 선택된 쌍을 사용할 때마다 다른 쌍의 기회를 균형있게 조정
-        // (예: 한 쌍이 너무 자주 나오지 않도록 조절)
-        availablePairs.splice(pairIndex, 1); // 사용한 쌍을 제거하여 다양성 보장
-        if (availablePairs.length === 0) {
-            // 모든 쌍이 최소 한 번씩 사용되었다면, 리스트를 재설정
-            for (let i = 1; i < 10; i++) {
-                availablePairs.push([i, 10 - i]);
-            }
+        let num = Math.floor(Math.random() * 9) + 1;
+        let complement = 10 - num;
+        if (numbers.length + 1 < boardSize && countMap.get(num) < boardSize / 10 && countMap.get(complement) < boardSize / 10) {
+            numbers.push(num, complement);
+            countMap.set(num, countMap.get(num) + 1);
+            countMap.set(complement, countMap.get(complement) + 1);
         }
     }
 
-    // 생성된 숫자 배열을 무작위로 섞어서 반환
-    return numbers.sort(() => Math.random() - 0.5);
+    shuffle(numbers); // 숫자 배열을 섞는다
+    return numbers;
+}
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // 배열 요소 교환
+    }
 }
 
 function createBoard() {
     clearInterval(timerInterval);
-    document.getElementById("timer").textContent = timer = 180;
-    document.getElementById("score").textContent = "0점";
+    document.getElementById("timer").textContent = '180초';
+    document.getElementById("score").textContent = '0점';
     score = 0;
     isPaused = false;
     document.getElementById("resume-btn").style.display = "none";
@@ -182,21 +178,18 @@ function createBoard() {
 
     const board = document.getElementById("game-board");
     board.innerHTML = "";
-    apples = generateSolvableNumbers();
-    for (let i = 0; i < boardSize; i++) {
+    apples = generateSolvableNumbers(); // Use the new number generation logic
+    apples.forEach((num, index) => {
         const apple = document.createElement("div");
-        apple.classList.add("apple");
-        apple.textContent = apples[i];
-        apple.dataset.index = i;
+        apple.className = "apple";
+        apple.textContent = num;
+        apple.dataset.index = index;
         apple.addEventListener("touchstart", startSelection);
         apple.addEventListener("touchmove", selectApple);
         apple.addEventListener("touchend", endSelection);
-        // 각 사과에 대한 터치 시 진동 추가
-        apple.addEventListener("touchstart", () => {
-            if (navigator.vibrate) navigator.vibrate(40); // 50ms 진동
-        });
         board.appendChild(apple);
-    }
+    });
+
     startTimer();
 }
 function startSelection(event) {  
