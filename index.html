@@ -173,7 +173,7 @@ function createBoard() {
         apple.addEventListener("touchend", endSelection);
         // 각 사과에 대한 터치 시 진동 추가
         apple.addEventListener("touchstart", () => {
-            if (navigator.vibrate) navigator.vibrate(50); // 50ms 진동
+            if (navigator.vibrate) navigator.vibrate(30); // 50ms 진동
         });
         board.appendChild(apple);
     }
@@ -188,7 +188,7 @@ startIdx = Number(event.target.dataset.index);
 selectApple(event);  
 
 // 터치 감 있는 잔진동 추가 (50ms 진동)  
-if (navigator.vibrate) navigator.vibrate(50);
+if (navigator.vibrate) navigator.vibrate(30);
 
 }
 
@@ -202,7 +202,7 @@ function selectApple(event) {
     if (selectedApples.indexOf(apple) === -1) { // 새로운 사과가 선택됐다면
         endIdx = currentIndex;  
         updateSelection();  
-        if (navigator.vibrate) navigator.vibrate(50); // 진동 발생
+        if (navigator.vibrate) navigator.vibrate(30); // 진동 발생
     }
 }
 function updateSelection() {  
@@ -236,7 +236,7 @@ function updateSelection() {
     }  
 
     // 진동은 새로 선택된 사과가 있을 때만 발생
-    if (newSelection && navigator.vibrate) navigator.vibrate(50);
+    if (newSelection && navigator.vibrate) navigator.vibrate(30);
 }
 
 function endSelection() {  
