@@ -191,34 +191,35 @@ function selectApple(event) {
         if (navigator.vibrate) navigator.vibrate(30); // 진동 발생
     }
 }
-function updateSelection() {
-    selectedApples.forEach(apple => apple.classList.remove("selected"));
-    selectedApples = [];
+function updateSelection() {  
+    let previouslySelectedCount = selectedApples.length;
+    selectedApples.forEach(apple => apple.classList.remove("selected"));  
+    selectedApples = [];  
 
-    if (startIdx === null || endIdx === null) return;
+    if (startIdx === null || endIdx === null) return;  
 
-    let { row: startRow, col: startCol } = getRowCol(startIdx);
-    let { row: endRow, col: endCol } = getRowCol(endIdx);
+    let { row: startRow, col: startCol } = getRowCol(startIdx);  
+    let { row: endRow, col: endCol } = getRowCol(endIdx);  
 
-    let rowDiff = Math.abs(endRow - startRow);
-    let colDiff = Math.abs(endCol - startCol);
-    let rowStep = (endRow - startRow) / Math.max(rowDiff, 1);
-    let colStep = (endCol - startCol) / Math.max(colDiff, 1);
+    let minRow = Math.min(startRow, endRow);  
+    let maxRow = Math.max(startRow, endRow);  
+    let minCol = Math.min(startCol, endCol);  
+    let maxCol = Math.max(startCol, endCol);  
+    let newSelection = false;
 
-    let currentRow = startRow;
-    let currentCol = startCol;
-
-    while (currentRow !== endRow + rowStep || currentCol !== endCol + colStep) {
-        let index = currentRow * COLS + currentCol;
-        let apple = document.querySelector(`.apple[data-index='${index}']`);
-        if (apple && apple.style.visibility !== 'hidden' && !selectedApples.includes(apple)) {
-            apple.classList.add('selected');
-            selectedApples.push(apple);
-        }
-        currentRow += rowStep;
-        currentCol += colStep;
-    }
-}
+    for (let r = minRow; r <= maxRow; r++) {  
+        for (let c = minCol; c <= maxCol; c++) {  
+            let index = r * COLS + c;  
+            let apple = document.querySelector(`.apple[data-index='${index}']`);  
+            if (apple && apple.style.visibility !== "hidden" && !selectedApples.includes(apple)) {  
+                if (!apple.classList.contains('selected')) {
+                    apple.classList.add("selected");  
+                    selectedApples.push(apple);
+                    newSelection = true;
+                }
+            }  
+        }  
+    }  
 
     // 진동은 새로 선택된 사과가 있을 때만 발생
     if (newSelection && navigator.vibrate) navigator.vibrate(30);
