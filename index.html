@@ -118,10 +118,11 @@ button {
   animation: blink 1s infinite;
 }
     </style>  
+
 </head>  
 <body>  <div id="header">  
     <h1>10점 만들기 by 윤서</h1>  
-    <p>남은시간 [ <span id="timer">120초</span> ] 점수 [ <span id="score">0점</span> ]</p>  
+    <p>남은시간 [ <span id="timer">180초</span> ] 점수 [ <span id="score">0점</span> ]</p>  
 </div>  <div id="game-container">  
     <div id="game-board"></div>  
     <div class="btn-container">  
@@ -132,7 +133,7 @@ button {
 </div>  <script>  
     const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;  
     let selectedApples = [], apples = [], isDragging = false, score = 0;  
-    let startIdx = null, endIdx = null, timer = 120, timerInterval, isPaused = false;  
+    let startIdx = null, endIdx = null, timer = 180, timerInterval, isPaused = false;  
     const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');  function getRowCol(index) {  
     return { row: Math.floor(index / COLS), col: index % COLS };  
 }  
@@ -149,7 +150,7 @@ function generateSolvableNumbers() {
 
 function createBoard() {
     clearInterval(timerInterval);
-    document.getElementById("timer").textContent = timer = 120;
+    document.getElementById("timer").textContent = timer = 180;
     document.getElementById("score").textContent = "0점";
     score = 0;
     isPaused = false;
@@ -169,7 +170,7 @@ function createBoard() {
         apple.addEventListener("touchend", endSelection);
         // 각 사과에 대한 터치 시 진동 추가
         apple.addEventListener("touchstart", () => {
-            if (navigator.vibrate) navigator.vibrate(50); // 50ms 진동
+            if (navigator.vibrate) navigator.vibrate(40); // 50ms 진동
         });
         board.appendChild(apple);
     }
@@ -184,7 +185,7 @@ startIdx = Number(event.target.dataset.index);
 selectApple(event);  
 
 // 터치 감 있는 잔진동 추가 (50ms 진동)  
-if (navigator.vibrate) navigator.vibrate(50);
+if (navigator.vibrate) navigator.vibrate(40);
 
 }
 
@@ -198,7 +199,7 @@ function selectApple(event) {
     if (selectedApples.indexOf(apple) === -1) { // 새로운 사과가 선택됐다면
         endIdx = currentIndex;  
         updateSelection();  
-        if (navigator.vibrate) navigator.vibrate(50); // 진동 발생
+        if (navigator.vibrate) navigator.vibrate(40); // 진동 발생
     }
 }
 function updateSelection() {  
@@ -232,7 +233,7 @@ function updateSelection() {
     }  
 
     // 진동은 새로 선택된 사과가 있을 때만 발생
-    if (newSelection && navigator.vibrate) navigator.vibrate(50);
+    if (newSelection && navigator.vibrate) navigator.vibrate(40);
 }
 
 function endSelection() {  
