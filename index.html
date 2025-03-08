@@ -18,6 +18,17 @@ body {
   min-height: 100vh; 
 }
 
+/* 게임 긴박감 효과를 위한 배경 애니메이션 */
+@keyframes urgentBackground {
+  from { background-color: #f4f4f4; }
+  to { background-color: #ff4e50; }
+}
+
+/* 긴박함을 나타내는 클래스 */
+.urgent {
+  animation: urgentBackground 1s ease forwards;
+}
+
 /* (2) 헤더: 전체 폭 차지 */
 #header {
   background: linear-gradient(45deg, #ff9800, #ff5722);
@@ -243,7 +254,10 @@ function startTimer() {
         if (!isPaused) {
             timer--;
             document.getElementById("timer").textContent = `${timer}초`;
-            if (timer <= 10) document.getElementById("timer").classList.add("blinking");
+            if (timer <= 10) {
+                document.getElementById("timer").classList.add("blinking");
+                document.body.classList.add("urgent"); // 배경 애니메이션 추가
+            }
             if (timer <= 0) {
                 clearInterval(timerInterval);
                 endGame();
@@ -253,10 +267,11 @@ function startTimer() {
 }
 
 function endGame() {
-    isPaused = true; // 게임 일시 정지
-    document.getElementById("timer").classList.remove("blinking"); // 점멸 중지
+    isPaused = true;
+    document.getElementById("timer").classList.remove("blinking");
+    document.body.classList.remove("urgent"); // 배경 원래대로 복원
     alert("게임이 종료되었습니다! 최종 점수: " + score + "점");
-    // 게임보드를 초기화하거나 재시작을 유도하는 등의 추가 조치를 취할 수 있습니다.
+    // 게임보드 초기화 등 추가 조치를 취할 수 있습니다.
 }
 document.getElementById("restart-btn").addEventListener("click", createBoard);  
 document.getElementById("pause-btn").addEventListener("click", () => { isPaused = true; document.getElementById("pause-btn").style.display = "none"; document.getElementById("resume-btn").style.display = "inline-block"; });  
