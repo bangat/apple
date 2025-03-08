@@ -119,136 +119,132 @@ button {
         <button id="resume-btn">계속하기</button>  
     </div>  
 </div> 
+ <script>  
+    const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;  
+    let selectedApples = [], apples = [], isDragging = false, score = 0;  
+    let startIdx = null, endIdx = null, timer = 120, timerInterval, isPaused = false;  
+    const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');  function getRowCol(index) {  
+    return { row: Math.floor(index / COLS), col: index % COLS };  
+}  
 
-<script>
-const ROWS = 10, COLS = 10, boardSize = ROWS * COLS; // 10x10 보드 설정
-let selectedApples = [], apples = [], isDragging = false, score = 0;
-let startIdx = null, endIdx = null, timer = 180, timerInterval, isPaused = false;
-const sound = new Audio('sound_effect_url_here.mp3');
+function generateSolvableNumbers() {
+let numbers = [], availablePairs = [];
+for (let i = 1; i <= 9; i++) availablePairs.push([i, 10 - i]);
+while (numbers.length < boardSize) {
+let pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
+numbers.push(pair[0], pair[1]);
+}
+return numbers.sort(() => Math.random() - 0.5);
+}
 
 function createBoard() {
     clearInterval(timerInterval);
-    document.getElementById("timer").textContent = "180초";
+    document.getElementById("timer").textContent = timer = 180;
     document.getElementById("score").textContent = "0점";
     score = 0;
     isPaused = false;
-    toggleButtons();
+    document.getElementById("resume-btn").style.display = "none";
+    document.getElementById("pause-btn").style.display = "inline-block";
 
     const board = document.getElementById("game-board");
     board.innerHTML = "";
-    apples = generateAdvancedSolvableNumbers();
-    if (!apples) {
-        alert('Failed to generate a valid board. Please try again.');
-        return;
+    apples = generateSolvableNumbers();
+    for (let i = 0; i < boardSize; i++) {
+        const apple = document.createElement("div");
+        apple.classList.add("apple");
+        apple.textContent = apples[i];
+        apple.dataset.index = i;
+        apple.addEventListener("touchstart", startSelection);
+        apple.addEventListener("touchmove", selectApple);
+        apple.addEventListener("touchend", endSelection);
+        // 각 사과에 대한 터치 시 진동 추가
+        apple.addEventListener("touchstart", () => {
+            if (navigator.vibrate) navigator.vibrate(30); // 50ms 진동
+        });
+        board.appendChild(apple);
     }
-    apples.forEach((value, index) => createApple(value, index));
     startTimer();
 }
+function startSelection(event) {  
+event.preventDefault();  
+if (isPaused) return;  
+isDragging = true;  
+selectedApples = [];  
+startIdx = Number(event.target.dataset.index);  
+selectApple(event);  
 
-function generateAdvancedSolvableNumbers() {
-    let attempts = 0;
-    let validBoard = false;
-    let numbers;
+// 터치 감 있는 잔진동 추가 (50ms 진동)  
+if (navigator.vibrate) navigator.vibrate(30);
 
-    while (!validBoard && attempts < 100) {
-        numbers = [];
-        for (let i = 1; i <= 9; i++) {
-            numbers.push(i, 10 - i);
-        }
-        shuffle(numbers);
-        if (validateBoard(numbers)) {
-            validBoard = true;
-        } else {
-            attempts++;
-        }
-    }
-
-    return validBoard ? numbers : null;
 }
 
-function validateBoard(numbers) {
-    // Simplified validation logic for demonstration
-    for (let i = 0; i < numbers.length; i += COLS) {
-        let sum = 0;
-        for (let j = 0; j < COLS; j++) {
-            sum += numbers[i + j];
-        }
-        if (sum !== 55) return false; // Each row must sum to 55 (1+2+...+9+10)
-    }
-    return true;
-}
+function selectApple(event) {  
+    event.preventDefault();  
+    if (!isDragging || isPaused) return;  
+    const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);  
+    if (!apple || !apple.classList.contains("apple")) return;  
 
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
-
-function createApple(value, index) {
-    const apple = document.createElement("div");
-    apple.className = "apple";
-    apple.textContent = value;
-    apple.dataset.index = index;
-    apple.addEventListener("touchstart", startSelection);
-    apple.addEventListener("touchmove", selectApple);
-    apple.addEventListener("touchend", endSelection);
-    document.getElementById("game-board").appendChild(apple);
-}
-
-function startSelection(event) {
-    event.preventDefault();
-    if (isPaused) return;
-    isDragging = true;
-    selectedApples = [];
-    startIdx = Number(event.target.dataset.index);
-    selectApple(event);
-}
-
-function selectApple(event) {
-    event.preventDefault();
-    if (!isDragging || isPaused) return;
-    const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
-    if (!apple || !apple.classList.contains("apple")) return;
     const currentIndex = Number(apple.dataset.index);
-    if (!selectedApples.includes(apple)) {
-        endIdx = currentIndex;
-        updateSelection();
+    if (selectedApples.indexOf(apple) === -1) { // 새로운 사과가 선택됐다면
+        endIdx = currentIndex;  
+        updateSelection();  
+        if (navigator.vibrate) navigator.vibrate(30); // 진동 발생
     }
 }
+function updateSelection() {  
+    let previouslySelectedCount = selectedApples.length;
+    selectedApples.forEach(apple => apple.classList.remove("selected"));  
+    selectedApples = [];  
 
-function updateSelection() {
-    // Update visual selection on board
+    if (startIdx === null || endIdx === null) return;  
+
+    let { row: startRow, col: startCol } = getRowCol(startIdx);  
+    let { row: endRow, col: endCol } = getRowCol(endIdx);  
+
+    let minRow = Math.min(startRow, endRow);  
+    let maxRow = Math.max(startRow, endRow);  
+    let minCol = Math.min(startCol, endCol);  
+    let maxCol = Math.max(startCol, endCol);  
+    let newSelection = false;
+
+    for (let r = minRow; r <= maxRow; r++) {  
+        for (let c = minCol; c <= maxCol; c++) {  
+            let index = r * COLS + c;  
+            let apple = document.querySelector(`.apple[data-index='${index}']`);  
+            if (apple && apple.style.visibility !== "hidden" && !selectedApples.includes(apple)) {  
+                if (!apple.classList.contains('selected')) {
+                    apple.classList.add("selected");  
+                    selectedApples.push(apple);
+                    newSelection = true;
+                }
+            }  
+        }  
+    }  
+
+    // 진동은 새로 선택된 사과가 있을 때만 발생
+    if (newSelection && navigator.vibrate) navigator.vibrate(30);
 }
 
-function endSelection() {
-    isDragging = false;
-    if (isPaused) return;
-    let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);
-    if (sum === 10) {
-        selectedApples.forEach(apple => {
-            apple.style.visibility = "hidden";
-            sound.play();
-        });
-        score += selectedApples.length;
-        document.getElementById("score").textContent = `${score}점`;
-    }
-    selectedApples.forEach(apple => apple.classList.remove("selected"));
-}
+function endSelection() {  
+    isDragging = false;  
+    if (isPaused) return;  
 
-function toggleButtons() {
-    document.getElementById("resume-btn").style.display = isPaused ? "inline-block" : "none";
-    document.getElementById("pause-btn").style.display = isPaused ? "none" : "inline-block";
-}
+    let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);  
+    if (sum === 10) {  
+        selectedApples.forEach(apple => apple.style.visibility = "hidden");  
+        sound.play();  
+        score += selectedApples.length * 2;  
+        document.getElementById("score").textContent = `${score}점`;  
+    }  
+    selectedApples.forEach(apple => apple.classList.remove("selected"));  
+}  
 
 function startTimer() {
     timerInterval = setInterval(() => {
         if (!isPaused) {
             timer--;
             document.getElementById("timer").textContent = `${timer}초`;
-            if (timer <= 10) {
-                document.getElementById("timer").classList.add("blinking");
-            }
+            if (timer <= 10) document.getElementById("timer").classList.add("blinking");
             if (timer <= 0) {
                 clearInterval(timerInterval);
                 endGame();
@@ -258,23 +254,17 @@ function startTimer() {
 }
 
 function endGame() {
-    isPaused = true;
-    document.getElementById("timer").classList.remove("blinking");
+    isPaused = true; // 게임 일시 정지
+    document.getElementById("timer").classList.remove("blinking"); // 점멸 중지
     alert("게임이 종료되었습니다! 최종 점수: " + score + "점");
-    resetGame();
+    // 게임보드를 초기화하거나 재시작을 유도하는 등의 추가 조치를 취할 수 있습니다.
 }
-
-document.getElementById("restart-btn").addEventListener("click", createBoard);
-document.getElementById("pause-btn").addEventListener("click", () => {
-    isPaused = true;
-    toggleButtons();
-});
-document.getElementById("resume-btn").addEventListener("click", () => {
-    isPaused = false;
-    toggleButtons();
-});
+document.getElementById("restart-btn").addEventListener("click", createBoard);  
+document.getElementById("pause-btn").addEventListener("click", () => { isPaused = true; document.getElementById("pause-btn").style.display = "none"; document.getElementById("resume-btn").style.display = "inline-block"; });  
+document.getElementById("resume-btn").addEventListener("click", () => { isPaused = false; document.getElementById("resume-btn").style.display = "none"; document.getElementById("pause-btn").style.display = "inline-block"; });  
 
 createBoard();
-</script>
-</body>
+
+</script>  </body>
+
 </html>
