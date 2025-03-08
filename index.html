@@ -138,15 +138,38 @@ button {
     return { row: Math.floor(index / COLS), col: index % COLS };  
 }  
 
-function generateSolvableNumbers() {  
-    let numbers = [], availablePairs = [];  
-    for (let i = 1; i <= 9; i++) availablePairs.push([i, 10 - i]);  
-    while (numbers.length < boardSize) {  
-        let pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];  
-        numbers.push(pair[0], pair[1]);  
-    }  
-    return numbers.sort(() => Math.random() - 0.5);  
-}  
+function generateSolvableNumbers() {
+    let numbers = [];
+    let totalPairs = boardSize / 2; // 총 필요한 쌍의 수
+    let availablePairs = [];
+    
+    // 1부터 9까지의 숫자 쌍을 생성하여 가능한 모든 쌍을 저장
+    for (let i = 1; i < 10; i++) {
+        availablePairs.push([i, 10 - i]);
+    }
+
+    // 게임 보드를 채울 때까지 숫자 쌍 선택
+    while (numbers.length < boardSize) {
+        let pairIndex = Math.floor(Math.random() * availablePairs.length);
+        let pair = availablePairs[pairIndex];
+
+        // 선택된 쌍을 배열에 추가
+        numbers.push(pair[0], pair[1]);
+
+        // 선택된 쌍을 사용할 때마다 다른 쌍의 기회를 균형있게 조정
+        // (예: 한 쌍이 너무 자주 나오지 않도록 조절)
+        availablePairs.splice(pairIndex, 1); // 사용한 쌍을 제거하여 다양성 보장
+        if (availablePairs.length === 0) {
+            // 모든 쌍이 최소 한 번씩 사용되었다면, 리스트를 재설정
+            for (let i = 1; i < 10; i++) {
+                availablePairs.push([i, 10 - i]);
+            }
+        }
+    }
+
+    // 생성된 숫자 배열을 무작위로 섞어서 반환
+    return numbers.sort(() => Math.random() - 0.5);
+}
 
 function createBoard() {
     clearInterval(timerInterval);
