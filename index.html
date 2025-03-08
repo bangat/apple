@@ -200,18 +200,22 @@ function updateSelection() {
     let maxRow = Math.max(startRow, endRow);  
     let minCol = Math.min(startCol, endCol);  
     let maxCol = Math.max(startCol, endCol);  
+    let newSelection = false;
 
     for (let r = minRow; r <= maxRow; r++) {  
         for (let c = minCol; c <= maxCol; c++) {  
             let index = r * COLS + c;  
             let apple = document.querySelector(`.apple[data-index='${index}']`);  
-            if (apple && apple.style.visibility !== "hidden") {  
+            if (apple && apple.style.visibility !== "hidden" && !selectedApples.includes(apple)) {  
                 apple.classList.add("selected");  
                 selectedApples.push(apple);  
+                newSelection = true;
             }  
         }  
     }  
-}  
+    // 새로운 사과가 선택되었을 때 진동 추가
+    if (newSelection && navigator.vibrate) navigator.vibrate(50);
+}
 
 function endSelection() {  
     isDragging = false;  
