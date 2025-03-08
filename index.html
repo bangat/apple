@@ -126,18 +126,14 @@ button {
     return { row: Math.floor(index / COLS), col: index % COLS };  
 }  
 
-function generateFlexibleNumbers() {
-    let numbers = [];
-    for (let i = 1; i <= 10; i++) {
-        numbers.push(i); // 1부터 10까지 숫자를 배열에 추가
-    }
-
-    // 숫자를 여러 번 추가하여 다양한 조합 가능성 증가
-    let additionalNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    numbers = numbers.concat(additionalNumbers);
-
-    // 배열을 충분히 섞어서 예측 불가능하게 만듦
-    return numbers.sort(() => Math.random() - 0.5).slice(0, boardSize);
+function generateSolvableNumbers() {
+let numbers = [], availablePairs = [];
+for (let i = 1; i <= 9; i++) availablePairs.push([i, 10 - i]);
+while (numbers.length < boardSize) {
+let pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
+numbers.push(pair[0], pair[1]);
+}
+return numbers.sort(() => Math.random() - 0.5);
 }
 
 function createBoard() {
