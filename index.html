@@ -1,6 +1,4 @@
 
-
-
 <!DOCTYPE html>  <html lang="ko">  <head>  
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  
@@ -226,16 +224,25 @@ function endSelection() {
     selectedApples.forEach(apple => apple.classList.remove("selected"));  
 }  
 
-function startTimer() {  
-    timerInterval = setInterval(() => {  
-        if (!isPaused) {  
-            timer--;  
-            document.getElementById("timer").textContent = `${timer}초`;  
-            if (timer <= 10) document.getElementById("timer").classList.add("blinking");  
-            if (timer <= 0) clearInterval(timerInterval);  
-        }  
-    }, 1000);  
-}  
+function startTimer() {
+    timerInterval = setInterval(() => {
+        if (!isPaused) {
+            timer--;
+            document.getElementById("timer").textContent = `${timer}초`;
+            if (timer <= 10) document.getElementById("timer").classList.add("blinking");
+            if (timer <= 0) {
+                clearInterval(timerInterval);
+                endGame();
+            }
+        }
+    }, 1000);
+}
+
+function endGame() {
+    isPaused = true; // 게임 일시 정지
+    alert("게임이 종료되었습니다! 최종 점수: " + score + "점");
+    // 게임보드를 초기화하거나 재시작을 유도하는 등의 추가 조치를 취할 수 있습니다.
+}
 
 document.getElementById("restart-btn").addEventListener("click", createBoard);  
 document.getElementById("pause-btn").addEventListener("click", () => { isPaused = true; document.getElementById("pause-btn").style.display = "none"; document.getElementById("resume-btn").style.display = "inline-block"; });  
