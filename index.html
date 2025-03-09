@@ -25,18 +25,12 @@
       width: 100%;
     }
     #game-container {
-  width: 100vw;   /* 뷰포트 너비 100% */
-  height: 100vh;  /* 뷰포트 높이 100% */
-  max-width: none;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  border-radius: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  
+  justify-content: flex-start; /* 요소들이 위쪽으로 정렬되도록 변경 */
+  height: 100vh;
+
   /* 🎯 게임 컨테이너 내부에 배경 이미지 유지 */
   background: url('https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcRsal9%2FbtsMEBzPcW3%2FYmq07oLzENb4msnTxdz10k%2Fimg.jpg') 
               no-repeat center center;
@@ -49,25 +43,29 @@
     #game-board {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(12, 1fr); /* 행 크기도 자동 조정 */
+  grid-template-rows: repeat(12, 1fr);
   gap: 5px;
-  width: min(90vw, 90vh); /* 가로와 세로 중 작은 값을 선택 */
-  height: min(90vw, 90vh);
+  width: min(90vw, 80vh);  /* 가로 세로 중 작은 값으로 설정 */
+  height: min(90vw, 80vh); /* 가로 세로 중 작은 값으로 설정 */
+  aspect-ratio: 10 / 12;  /* 정사각형 비율 유지 */
   padding: 10px;
+  margin: auto;
 }
-    .apple {
-      aspect-ratio: 1;
-      background: orange;
-      color: white;
-      font-size: clamp(1rem, 2.5vw, 2rem);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      user-select: none;
-      transition: opacity 0.5s;
-      opacity: 1;
-    }
+
+.apple {
+  width: 100%; /* 셀 크기 자동 조정 */
+  aspect-ratio: 1; /* 정사각형 유지 */
+  background: orange;
+  color: white;
+  font-size: clamp(0.8rem, 2vw, 1.5rem); /* 가변 폰트 크기 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  user-select: none;
+  transition: opacity 0.5s;
+  opacity: 1;
+}
     .selected { background: red; }
     .btn-container {
       display: flex;
@@ -84,6 +82,8 @@
       color: white;
       background: #007bff;
     }
+
+
   </style>
 </head>
 <body>
