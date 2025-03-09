@@ -119,38 +119,48 @@ function startTimer() {
         if (timer > 0) {
             timer--;
             document.getElementById("timer").textContent = `${timer}초`;
+
+            // 🟠 10초 남았을 때 배경색 변경
+            if (timer === 10) {
+                document.body.style.background = "red";
+            }
         } else {
             clearInterval(timerInterval);
             gameActive = false;
-            alert("게임 종료! 점수: " + score);
+            alert("⏰ 게임 종료! 최종 점수: " + score);
+            
+            // ⚪ 팝업 메시지 후 배경색 복원
+            document.body.style.background = "white";
         }
     }, 1000);
 }
-
         function createBoard() {
-            clearInterval(timerInterval);
-            document.getElementById("timer").textContent = timer = 180;
-            document.getElementById("score").textContent = "0점";
-            score = 0;
-            gameActive = true;
-            vibratedApples.clear();
+    clearInterval(timerInterval);
+    document.getElementById("timer").textContent = timer = 180;
+    document.getElementById("score").textContent = "0점";
+    score = 0;
+    gameActive = true;
+    vibratedApples.clear();
+    
+    // 🎨 게임 시작 시 배경색 초기화
+    document.body.style.background = "white";
 
-            const board = document.getElementById("game-board");
-            board.innerHTML = "";
-            apples = generateSolvableNumbers();
-            for (let i = 0; i < boardSize; i++) {
-                const apple = document.createElement("div");
-                apple.classList.add("apple");
-                apple.textContent = apples[i];
-                apple.dataset.index = i;
-                apple.addEventListener("touchstart", startSelection);
-                apple.addEventListener("touchmove", selectApple);
-                apple.addEventListener("touchend", endSelection);
-                board.appendChild(apple);
-            }
-            startTimer();
-        }
-
+    const board = document.getElementById("game-board");
+    board.innerHTML = "";
+    apples = generateSolvableNumbers();
+    for (let i = 0; i < boardSize; i++) {
+        const apple = document.createElement("div");
+        apple.classList.add("apple");
+        apple.textContent = apples[i];
+        apple.dataset.index = i;
+        apple.addEventListener("touchstart", startSelection);
+        apple.addEventListener("touchmove", selectApple);
+        apple.addEventListener("touchend", endSelection);
+        board.appendChild(apple);
+    }
+    
+    startTimer();  // 🟢 타이머 시작
+}
         function startSelection(event) {
             if (!gameActive) return;
             event.preventDefault();
