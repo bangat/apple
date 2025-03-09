@@ -113,6 +113,20 @@
             return numbers.sort(() => Math.random() - 0.5);
         }
 
+function startTimer() {
+    clearInterval(timerInterval); // 기존 타이머가 있다면 초기화
+    timerInterval = setInterval(() => {
+        if (timer > 0) {
+            timer--;
+            document.getElementById("timer").textContent = `${timer}초`;
+        } else {
+            clearInterval(timerInterval);
+            gameActive = false;
+            alert("게임 종료! 점수: " + score);
+        }
+    }, 1000);
+}
+
         function createBoard() {
             clearInterval(timerInterval);
             document.getElementById("timer").textContent = timer = 180;
