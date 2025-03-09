@@ -1,270 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>10점 만들기 by 윤서</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            text-align: center;
+            min-height: 100vh;
+            transition: background 0.5s;
+        }
+        #header {
+            background: linear-gradient(45deg, #ff9800, #ff5722);
+            color: white;
+            padding: 15px 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 5px solid #d84315;
+            width: 100%;
+        }
+        #game-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            width: 100%;
+            padding: 10px 0;
+        }
+        .apple {
+            aspect-ratio: 1;
+            background: orange;
+            color: white;
+            font-size: clamp(1rem, 2.5vw, 2rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            user-select: none;
+            transition: background 0.2s;
+            visibility: visible;
+        }
+        .selected { background: red; }
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            background: #007bff;
+        }
+        @keyframes blink {
+            0% { color: red; }
+            50% { color: white; }
+            100% { color: red; }
+        }
+        #timer.blinking { animation: blink 1s infinite; }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>10점 만들기 by 윤서</h1>
+        <p>남은시간 [ <span id="timer">180초</span> ] 점수 [ <span id="score">0점</span> ]</p>
+    </div>
+    <div id="game-container">
+        <div id="game-board"></div>
+        <div class="btn-container">
+            <button id="restart-btn">다시하기</button>
+        </div>
+    </div>
 
-<!DOCTYPE html>  <html lang="ko">  <head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  
-    <title>윤서짱</title>  
-    <style>  
-        /* (1) 기본 스타일 & 리셋 */
-* {
-  margin: 0; 
-  padding: 0; 
-  box-sizing: border-box;
-}
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-  text-align: center;
-  /* 화면이 세로로 스크롤될 수 있도록 */
-  min-height: 100vh; 
-}
+    <script>
+        const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;
+        let selectedApples = [], apples = [], isDragging = false, score = 0;
+        let startIdx = null, endIdx = null, timer = 180, timerInterval, gameActive = true;
+        const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');
 
-/* (2) 헤더: 전체 폭 차지 */
-#header {
-  background: linear-gradient(45deg, #ff9800, #ff5722);
-  color: white;
-  padding: 15px 0;
-  font-size: 1.2rem;
-  font-weight: bold;
-  border-bottom: 5px solid #d84315;
-  width: 100%;
-}
+        function getRowCol(index) {
+            return { row: Math.floor(index / COLS), col: index % COLS };
+        }
 
-/* (3) 게임 컨테이너: 가로로는 유연하게, 너무 크게는 제한 */
-#game-container {
-  width: 90%;        /* 화면 너비의 90% 사용 */
-  max-width: 1200px; /* 너무 커지지 않도록 제한 */
-  margin: 20px auto; /* 가운데 정렬 & 위아래 여백 */
-  background: white;
-  padding: 10px;
-  border-radius: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
+        function generateSolvableNumbers() {
+            let numbers = [];
+            let pairs = [];
+            for (let i = 1; i <= 9; i++) pairs.push([i, 10 - i]);
 
-/* (4) 게임 보드: 10칸 고정, 전체 폭 채움 */
-#game-board {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr); /* 10열 고정 */
-  gap: 5px;
-  width: 100%;
-  padding: 10px 0;
-  box-sizing: border-box;
-}
+            while (numbers.length < boardSize - 1) {
+                let pair = pairs[Math.floor(Math.random() * pairs.length)];
+                numbers.push(pair[0], pair[1]);
+            }
 
-/* (5) 숫자(사과) 칸: 정사각형 + 글자 크기 자동 확장 */
-.apple {
-  aspect-ratio: 1;                          /* 정사각형 유지 */
-  background: orange;
-  color: white;
-  font-size: clamp(1rem, 2.5vw, 2rem);      /* 화면 크기에 따라 글자 크기 변화 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  user-select: none;
-  transition: background 0.2s;
-  visibility: visible;
-}
+            let remainingNumbers = numbers.filter(n => n < 10);
+            let lastNumber = remainingNumbers[Math.floor(Math.random() * remainingNumbers.length)];
+            numbers.push(10 - lastNumber);
 
-.selected {
-  background: red;
-}
+            return numbers.sort(() => Math.random() - 0.5);
+        }
 
-/* (6) 버튼 컨테이너 & 버튼 스타일 */
-.btn-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 15px;
-}
+        function createBoard() {
+            clearInterval(timerInterval);
+            document.body.style.background = "#f4f4f4";
+            document.getElementById("timer").textContent = timer = 180;
+            document.getElementById("score").textContent = "0점";
+            score = 0;
+            gameActive = true;
 
-button {
-  padding: 12px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-  color: white;
-}
+            const board = document.getElementById("game-board");
+            board.innerHTML = "";
+            apples = generateSolvableNumbers();
+            for (let i = 0; i < boardSize; i++) {
+                const apple = document.createElement("div");
+                apple.classList.add("apple");
+                apple.textContent = apples[i];
+                apple.dataset.index = i;
+                apple.addEventListener("touchstart", startSelection);
+                apple.addEventListener("touchmove", selectApple);
+                apple.addEventListener("touchend", endSelection);
+                board.appendChild(apple);
+            }
+            startTimer();
+        }
 
-#restart-btn {
-  background: #007bff;
-}
-#pause-btn {
-  background: #ff5722;
-}
-#resume-btn {
-  background: #4caf50;
-  display: none;
-}
+        function startSelection(event) {
+            if (!gameActive) return;
+            isDragging = true;
+            selectedApples = [];
+            startIdx = Number(event.target.dataset.index);
+            selectApple(event);
+            if (navigator.vibrate) navigator.vibrate(30);
+        }
 
-/* (7) 남은 시간 깜빡임 */
-@keyframes blink {
-  0% { color: red; }
-  50% { color: white; }
-  100% { color: red; }
-}
-#timer.blinking {
-  animation: blink 1s infinite;
-}
-    </style>  
-</head>  
-<body>  <div id="header">  
-    <h1>10점 만들기 by 윤서</h1>  
-    <p>남은시간 [ <span id="timer">180초</span> ] 점수 [ <span id="score">0점</span> ]</p>  
-</div>  <div id="game-container">  
-    <div id="game-board"></div>  
-    <div class="btn-container">  
-        <button id="restart-btn">다시하기</button>  
-        <button id="pause-btn">일시정지</button>  
-        <button id="resume-btn">계속하기</button>  
-    </div>  
-</div> 
- <script>  
-    const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;  
-    let selectedApples = [], apples = [], isDragging = false, score = 0;  
-    let startIdx = null, endIdx = null, timer = 120, timerInterval, isPaused = false;  
-    const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');  function getRowCol(index) {  
-    return { row: Math.floor(index / COLS), col: index % COLS };  
-}  
-
-function generateSolvableNumbers() {
-let numbers = [], availablePairs = [];
-for (let i = 1; i <= 9; i++) availablePairs.push([i, 10 - i]);
-while (numbers.length < boardSize) {
-let pair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
-numbers.push(pair[0], pair[1]);
-}
-return numbers.sort(() => Math.random() - 0.5);
-}
-
-function createBoard() {
-    clearInterval(timerInterval);
-    document.getElementById("timer").textContent = timer = 180;
-    document.getElementById("score").textContent = "0점";
-    score = 0;
-    isPaused = false;
-    document.getElementById("resume-btn").style.display = "none";
-    document.getElementById("pause-btn").style.display = "inline-block";
-
-    const board = document.getElementById("game-board");
-    board.innerHTML = "";
-    apples = generateSolvableNumbers();
-    for (let i = 0; i < boardSize; i++) {
-        const apple = document.createElement("div");
-        apple.classList.add("apple");
-        apple.textContent = apples[i];
-        apple.dataset.index = i;
-        apple.addEventListener("touchstart", startSelection);
-        apple.addEventListener("touchmove", selectApple);
-        apple.addEventListener("touchend", endSelection);
-        // 각 사과에 대한 터치 시 진동 추가
-        apple.addEventListener("touchstart", () => {
-            if (navigator.vibrate) navigator.vibrate(30); // 50ms 진동
-        });
-        board.appendChild(apple);
-    }
-    startTimer();
-}
-function startSelection(event) {  
-event.preventDefault();  
-if (isPaused) return;  
-isDragging = true;  
-selectedApples = [];  
-startIdx = Number(event.target.dataset.index);  
-selectApple(event);  
-
-// 터치 감 있는 잔진동 추가 (50ms 진동)  
-if (navigator.vibrate) navigator.vibrate(30);
-
-}
-
-function selectApple(event) {  
-    event.preventDefault();  
-    if (!isDragging || isPaused) return;  
-    const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);  
-    if (!apple || !apple.classList.contains("apple")) return;  
-
-    const currentIndex = Number(apple.dataset.index);
-    if (selectedApples.indexOf(apple) === -1) { // 새로운 사과가 선택됐다면
-        endIdx = currentIndex;  
-        updateSelection();  
-        if (navigator.vibrate) navigator.vibrate(30); // 진동 발생
-    }
-}
-function updateSelection() {  
-    let previouslySelectedCount = selectedApples.length;
-    selectedApples.forEach(apple => apple.classList.remove("selected"));  
-    selectedApples = [];  
-
-    if (startIdx === null || endIdx === null) return;  
-
-    let { row: startRow, col: startCol } = getRowCol(startIdx);  
-    let { row: endRow, col: endCol } = getRowCol(endIdx);  
-
-    let minRow = Math.min(startRow, endRow);  
-    let maxRow = Math.max(startRow, endRow);  
-    let minCol = Math.min(startCol, endCol);  
-    let maxCol = Math.max(startCol, endCol);  
-    let newSelection = false;
-
-    for (let r = minRow; r <= maxRow; r++) {  
-        for (let c = minCol; c <= maxCol; c++) {  
-            let index = r * COLS + c;  
-            let apple = document.querySelector(`.apple[data-index='${index}']`);  
-            if (apple && apple.style.visibility !== "hidden" && !selectedApples.includes(apple)) {  
-                if (!apple.classList.contains('selected')) {
-                    apple.classList.add("selected");  
-                    selectedApples.push(apple);
-                    newSelection = true;
-                }
-            }  
-        }  
-    }  
-
-    // 진동은 새로 선택된 사과가 있을 때만 발생
-    if (newSelection && navigator.vibrate) navigator.vibrate(30);
-}
-
-function endSelection() {  
-    isDragging = false;  
-    if (isPaused) return;  
-
-    let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);  
-    if (sum === 10) {  
-        selectedApples.forEach(apple => apple.style.visibility = "hidden");  
-        sound.play();  
-        score += selectedApples.length * 2;  
-        document.getElementById("score").textContent = `${score}점`;  
-    }  
-    selectedApples.forEach(apple => apple.classList.remove("selected"));  
-}  
-
-function startTimer() {
-    timerInterval = setInterval(() => {
-        if (!isPaused) {
-            timer--;
-            document.getElementById("timer").textContent = `${timer}초`;
-            if (timer <= 10) document.getElementById("timer").classList.add("blinking");
-            if (timer <= 0) {
-                clearInterval(timerInterval);
-                endGame();
+        function selectApple(event) {
+            if (!isDragging || !gameActive) return;
+            const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
+            if (!apple || !apple.classList.contains("apple")) return;
+            if (!selectedApples.includes(apple)) {
+                selectedApples.push(apple);
+                apple.classList.add("selected");
+                if (navigator.vibrate) navigator.vibrate(30);
             }
         }
-    }, 1000);
-}
 
-function endGame() {
-    isPaused = true; // 게임 일시 정지
-    document.getElementById("timer").classList.remove("blinking"); // 점멸 중지
-    alert("게임이 종료되었습니다! 최종 점수: " + score + "점");
-    // 게임보드를 초기화하거나 재시작을 유도하는 등의 추가 조치를 취할 수 있습니다.
-}
-document.getElementById("restart-btn").addEventListener("click", createBoard);  
-document.getElementById("pause-btn").addEventListener("click", () => { isPaused = true; document.getElementById("pause-btn").style.display = "none"; document.getElementById("resume-btn").style.display = "inline-block"; });  
-document.getElementById("resume-btn").addEventListener("click", () => { isPaused = false; document.getElementById("resume-btn").style.display = "none"; document.getElementById("pause-btn").style.display = "inline-block"; });  
+        function endSelection() {
+            isDragging = false;
+            if (!gameActive) return;
+            let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);
+            if (sum === 10) {
+                selectedApples.forEach(apple => apple.style.visibility = "hidden");
+                sound.play();
+                score += selectedApples.length * 2;
+                document.getElementById("score").textContent = `${score}점`;
+            }
+            selectedApples.forEach(apple => apple.classList.remove("selected"));
+        }
 
-createBoard();
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!gameActive) return;
+                timer--;
+                document.getElementById("timer").textContent = `${timer}초`;
+                if (timer <= 10) document.body.style.background = "#ffcccb";
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    gameActive = false;
+                    document.body.style.background = "#f4f4f4";
+                    alert("시간 초과! 다시 시작하려면 '다시하기' 버튼을 누르세요.");
+                }
+            }, 1000);
+        }
 
-</script>  </body>
-
+        document.getElementById("restart-btn").addEventListener("click", createBoard);
+        createBoard();
+    </script>
+</body>
 </html>
