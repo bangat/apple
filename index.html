@@ -84,7 +84,9 @@
     <div id="game-container">
         <div id="game-board"></div>
         <div class="btn-container">
-            <button id="restart-btn">다시하기</button>
+      
+    <button id="restart-btn">다시하기</button>
+    <button id="regenerate-btn">재생성</button> <!-- 🔥 추가된 버튼 -->
         </div>
     </div>
 
@@ -208,6 +210,41 @@ function startTimer() {
 
         document.getElementById("restart-btn").addEventListener("click", createBoard);
         createBoard();
+
+document.getElementById("regenerate-btn").addEventListener("click", regenerateBoard);
+
+function regenerateBoard() {
+    let remainingNumbers = Array.from(document.querySelectorAll(".apple"))
+        .filter(apple => apple.style.opacity !== "0") // 남아있는 사과만 추출
+        .map(apple => Number(apple.textContent));
+    
+    if (canMakeTen(remainingNumbers)) {
+        alert("이미 10을 만들 수 있는 조합이 있습니다!");
+        return;
+    }
+
+    // 불가능한 경우, 재배열
+    let newNumbers = generateSolvableNumbers(remainingNumbers.length);
+    let apples = document.querySelectorAll(".apple");
+    
+    let index = 0;
+    apples.forEach(apple => {
+        if (apple.style.opacity !== "0") {
+            apple.textContent = newNumbers[index++];
+        }
+    });
+
+    alert("새로운 조합이 생성되었습니다!");
+}
+
+// 🔍 주어진 숫자들로 10을 만들 수 있는지 체크하는 함수
+function canMakeTen(numbers) {
+    let set = new Set(numbers);
+    for (let num of numbers) {
+        if (set.has(10 - num)) return true;
+    }
+    return false;
+}
     </script>
 </body>
 </html>
