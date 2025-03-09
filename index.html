@@ -150,23 +150,25 @@
         }
 
         function selectApple(event) {
-            if (!isDragging || !gameActive) return;
-            event.preventDefault();
-            const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
-            if (!apple || !apple.classList.contains("apple")) return;
-            if (!selectedApples.includes(apple)) {
-                selectedApples.push(apple);
-                apple.classList.add("selected");
-                triggerVibration(apple.dataset.index);
-            }
-        }
+    if (!isDragging || !gameActive) return;
+    event.preventDefault();
 
-        function triggerVibration(index) {
-            if (!vibratedApples.has(index)) {
-                vibratedApples.add(index); // 해당 사과를 진동 기록에 추가
-                if (navigator.vibrate) navigator.vibrate(25);
-            }
-        }
+    const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
+    if (!apple || !apple.classList.contains("apple")) return;
+
+    if (!selectedApples.includes(apple)) {
+        selectedApples.push(apple);
+        apple.classList.add("selected");
+        triggerVibration(apple.dataset.index); // 새로운 사과를 지날 때마다 진동 실행
+    }
+}
+
+function triggerVibration(index) {
+    if (!vibratedApples.has(index)) {
+        vibratedApples.add(index); // 진동 발생한 사과 기록
+        if (navigator.vibrate) navigator.vibrate(20); // 잔진동 실행
+    }
+}
 
         function endSelection() {
             isDragging = false;
