@@ -11,6 +11,8 @@
             background: #f4f4f4;
             text-align: center;
             min-height: 100vh;
+            overflow: hidden; /* 스크롤 방지 */
+            touch-action: none; /* 터치 시 스크롤 방지 */
             transition: background 0.5s;
         }
         #header {
@@ -67,12 +69,6 @@
             color: white;
             background: #007bff;
         }
-        @keyframes blink {
-            0% { color: red; }
-            50% { color: white; }
-            100% { color: red; }
-        }
-        #timer.blinking { animation: blink 1s infinite; }
     </style>
 </head>
 <body>
@@ -91,7 +87,10 @@
         const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;
         let selectedApples = [], apples = [], isDragging = false, score = 0;
         let startIdx = null, endIdx = null, timer = 180, timerInterval, gameActive = true;
-        const sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');
+        let vibratedApples = new Set(); // 이미 진동한 사과 저장
+        
+        // 🔊 사운드 미리 로드
+        let sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');
 
         function getRowCol(index) {
             return { row: Math.floor(index / COLS), col: index % COLS };
@@ -121,6 +120,7 @@
             document.getElementById("score").textContent = "0점";
             score = 0;
             gameActive = true;
+            vibratedApples.clear(); // 진동 기록 초기화
 
             const board = document.getElementById("game-board");
             board.innerHTML = "";
@@ -140,21 +140,31 @@
 
         function startSelection(event) {
             if (!gameActive) return;
+            event.preventDefault();
             isDragging = true;
             selectedApples = [];
+            vibratedApples.clear(); // 새 선택마다 진동 기록 초기화
             startIdx = Number(event.target.dataset.index);
             selectApple(event);
-            if (navigator.vibrate) navigator.vibrate(30);
+            triggerVibration(event.target.dataset.index);
         }
 
         function selectApple(event) {
             if (!isDragging || !gameActive) return;
+            event.preventDefault();
             const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
             if (!apple || !apple.classList.contains("apple")) return;
             if (!selectedApples.includes(apple)) {
                 selectedApples.push(apple);
                 apple.classList.add("selected");
-                if (navigator.vibrate) navigator.vibrate(30);
+                triggerVibration(apple.dataset.index);
+            }
+        }
+
+        function triggerVibration(index) {
+            if (!vibratedApples.has(index)) {
+                vibratedApples.add(index); // 해당 사과를 진동 기록에 추가
+                if (navigator.vibrate) navigator.vibrate(25);
             }
         }
 
@@ -164,7 +174,7 @@
             let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);
             if (sum === 10) {
                 selectedApples.forEach(apple => apple.style.visibility = "hidden");
-                sound.play();
+                sound.play().catch(error => console.log("사운드 재생 오류:", error));
                 score += selectedApples.length * 2;
                 document.getElementById("score").textContent = `${score}점`;
             }
