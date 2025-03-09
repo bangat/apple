@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+ <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
   <title>10점 만들기 by 윤서</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,25 +25,36 @@
       width: 100%;
     }
     #game-container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 20px auto;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-      /* 🎯 게임 컨테이너 내부에 새로운 배경 이미지 추가 */
-      background: url('https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcRsal9%2FbtsMEBzPcW3%2FYmq07oLzENb4msnTxdz10k%2Fimg.jpg') 
-                  no-repeat center center;
-      background-size: cover;
-      position: relative;
-    }
+  width: 100vw;   /* 뷰포트 너비 100% */
+  height: 100vh;  /* 뷰포트 높이 100% */
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  /* 🎯 게임 컨테이너 내부에 배경 이미지 유지 */
+  background: url('https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcRsal9%2FbtsMEBzPcW3%2FYmq07oLzENb4msnTxdz10k%2Fimg.jpg') 
+              no-repeat center center;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+
     #game-board {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
-      width: 100%;
-      padding: 10px 0;
-    }
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(12, 1fr); /* 행 크기도 자동 조정 */
+  gap: 5px;
+  width: min(90vw, 90vh); /* 가로와 세로 중 작은 값을 선택 */
+  height: min(90vw, 90vh);
+  padding: 10px;
+}
     .apple {
       aspect-ratio: 1;
       background: orange;
