@@ -208,42 +208,58 @@ function startTimer() {
             selectedApples.forEach(apple => apple.classList.remove("selected"));
         }
 
-        document.getElementById("restart-btn").addEventListener("click", createBoard);
-        createBoard();
-
-document.getElementById("regenerate-btn").addEventListener("click", regenerateBoard);
+        document.getElementById("regenerate-btn").addEventListener("click", regenerateBoard);
 
 function regenerateBoard() {
-    let remainingNumbers = Array.from(document.querySelectorAll(".apple"))
-        .filter(apple => apple.style.opacity !== "0") // 남아있는 사과만 추출
-        .map(apple => Number(apple.textContent));
+    let remainingApples = Array.from(document.querySelectorAll(".apple"))
+        .filter(apple => apple.style.opacity !== "0"); // 남아있는 사과만 추출
+    
+    let remainingNumbers = remainingApples.map(apple => Number(apple.textContent));
     
     if (canMakeTen(remainingNumbers)) {
         alert("이미 10을 만들 수 있는 조합이 있습니다!");
         return;
     }
 
-    // 불가능한 경우, 재배열
-    let newNumbers = generateSolvableNumbers(remainingNumbers.length);
-    let apples = document.querySelectorAll(".apple");
-    
-    let index = 0;
-    apples.forEach(apple => {
-        if (apple.style.opacity !== "0") {
-            apple.textContent = newNumbers[index++];
-        }
+    // 🔄 10을 만들 수 없는 경우 → 새로운 조합 생성
+    let newNumbers = generateValidNumbers(remainingNumbers.length);
+
+    // 🍏 남아있는 사과들에 새 숫자 배치
+    remainingApples.forEach((apple, index) => {
+        apple.textContent = newNumbers[index];
     });
 
     alert("새로운 조합이 생성되었습니다!");
 }
 
-// 🔍 주어진 숫자들로 10을 만들 수 있는지 체크하는 함수
+// 🔍 남아있는 숫자로 10을 만들 수 있는지 확인
 function canMakeTen(numbers) {
     let set = new Set(numbers);
     for (let num of numbers) {
         if (set.has(10 - num)) return true;
     }
     return false;
+}
+
+// 🎯 남은 개수에 맞춰 10을 만들 수 있는 새로운 조합 생성
+function generateValidNumbers(size) {
+    let numbers = [];
+    let pairs = [];
+    
+    for (let i = 1; i <= 9; i++) {
+        pairs.push([i, 10 - i]); // 1+9, 2+8 ... 9+1 조합 생성
+    }
+
+    while (numbers.length < size) {
+        let pair = pairs[Math.floor(Math.random() * pairs.length)];
+        if (numbers.length + 2 <= size) {
+            numbers.push(pair[0], pair[1]);
+        } else {
+            numbers.push(Math.floor(Math.random() * 9) + 1);
+        }
+    }
+
+    return numbers.sort(() => Math.random() - 0.5);
 }
     </script>
 </body>
