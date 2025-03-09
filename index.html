@@ -8,11 +8,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: Arial, sans-serif;
-            background: #f4f4f4;
+            background: #f4f4f4; /* 기본 배경 */
             text-align: center;
             min-height: 100vh;
-            overflow: hidden; /* 스크롤 방지 */
-            touch-action: none; /* 터치 시 스크롤 방지 */
+            overflow: hidden;
+            touch-action: none;
             transition: background 0.5s;
         }
         #header {
@@ -28,10 +28,15 @@
             width: 90%;
             max-width: 1200px;
             margin: 20px auto;
-            background: white;
             padding: 10px;
             border-radius: 10px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            
+            /* 🎯 게임 컨테이너 내부에 새로운 배경 이미지 추가 */
+            background: url('https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcRsal9%2FbtsMEBzPcW3%2FYmq07oLzENb4msnTxdz10k%2Fimg.jpg') 
+                        no-repeat center center;
+            background-size: cover;
+            position: relative;
         }
         #game-board {
             display: grid;
@@ -50,8 +55,8 @@
             justify-content: center;
             border-radius: 50%;
             user-select: none;
-            transition: background 0.2s;
-            visibility: visible;
+            transition: opacity 0.5s;
+            opacity: 1;
         }
         .selected { background: red; }
         .btn-container {
@@ -86,15 +91,10 @@
     <script>
         const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;
         let selectedApples = [], apples = [], isDragging = false, score = 0;
-        let startIdx = null, endIdx = null, timer = 180, timerInterval, gameActive = true;
-        let vibratedApples = new Set(); // 이미 진동한 사과 저장
-        
-        // 🔊 사운드 미리 로드
-        let sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');
+        let timer = 180, timerInterval, gameActive = true;
+        let vibratedApples = new Set(); 
 
-        function getRowCol(index) {
-            return { row: Math.floor(index / COLS), col: index % COLS };
-        }
+        let sound = new Audio('https://blog.kakaocdn.net/dn/KOcNd/btsHuy2pZbW/N4YgWdF6Kdc1nVRZkEzdhk/%EA%B3%A0%EC%A0%84%20%EB%9D%B5%EB%8F%99%20%28%EC%A0%95%EB%8B%B5.mp3?attach=1&knm=tfile.mp3');
 
         function generateSolvableNumbers() {
             let numbers = [];
@@ -115,12 +115,11 @@
 
         function createBoard() {
             clearInterval(timerInterval);
-            document.body.style.background = "#f4f4f4";
             document.getElementById("timer").textContent = timer = 180;
             document.getElementById("score").textContent = "0점";
             score = 0;
             gameActive = true;
-            vibratedApples.clear(); // 진동 기록 초기화
+            vibratedApples.clear();
 
             const board = document.getElementById("game-board");
             board.innerHTML = "";
@@ -143,66 +142,45 @@
             event.preventDefault();
             isDragging = true;
             selectedApples = [];
-            vibratedApples.clear(); // 새 선택마다 진동 기록 초기화
-            startIdx = Number(event.target.dataset.index);
+            vibratedApples.clear();
             selectApple(event);
-            triggerVibration(event.target.dataset.index);
         }
 
         function selectApple(event) {
-    if (!isDragging || !gameActive) return;
-    event.preventDefault();
+            if (!isDragging || !gameActive) return;
+            event.preventDefault();
+            const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
+            if (!apple || !apple.classList.contains("apple")) return;
 
-    const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
-    if (!apple || !apple.classList.contains("apple")) return;
+            if (!selectedApples.includes(apple)) {
+                selectedApples.push(apple);
+                apple.classList.add("selected");
+                triggerVibration(apple.dataset.index);
+            }
+        }
 
-    if (!selectedApples.includes(apple)) {
-        selectedApples.push(apple);
-        apple.classList.add("selected");
-        triggerVibration(apple.dataset.index); // 새로운 사과를 지날 때마다 진동 실행
-    }
-}
-
-function triggerVibration(index) {
-    if (!vibratedApples.has(index)) {
-        vibratedApples.add(index); // 진동 발생한 사과 기록
-        if (navigator.vibrate) navigator.vibrate(20); // 잔진동 실행
-    }
-}
+        function triggerVibration(index) {
+            if (!vibratedApples.has(index)) {
+                vibratedApples.add(index);
+                if (navigator.vibrate) navigator.vibrate(20);
+            }
+        }
 
         function endSelection() {
             isDragging = false;
             if (!gameActive) return;
             let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);
             if (sum === 10) {
-                selectedApples.forEach(apple => apple.style.visibility = "hidden");
+                selectedApples.forEach(apple => {
+                    apple.style.opacity = "0";
+                    apple.style.pointerEvents = "none";
+                });
                 sound.play().catch(error => console.log("사운드 재생 오류:", error));
                 score += selectedApples.length * 2;
                 document.getElementById("score").textContent = `${score}점`;
             }
             selectedApples.forEach(apple => apple.classList.remove("selected"));
         }
-
-        function startTimer() {
-    timerInterval = setInterval(() => {
-        if (!gameActive) return;
-        timer--;
-        document.getElementById("timer").textContent = `${timer}초`;
-
-        // 남은 시간이 10초 이하일 때 배경색 변경 (긴장감 조성)
-        if (timer <= 10) {
-            document.body.style.background = "#ff4444";
-        }
-
-        // 시간이 0초가 되면 게임 종료 및 배경색 원래대로 복구
-        if (timer <= 0) {
-            clearInterval(timerInterval);
-            gameActive = false;
-            document.body.style.background = "#f4f4f4"; // 원래 색으로 복구
-            alert("게임 종료! 다시 시작하려면 '다시하기' 버튼을 누르세요.");
-        }
-    }, 1000);
-}
 
         document.getElementById("restart-btn").addEventListener("click", createBoard);
         createBoard();
