@@ -3,38 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>10점 만들기 by 윤서</title>
+  <title>윤서짱</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: linear-gradient(45deg, #ff9800, #ff5722);
       text-align: center;
       min-height: 100vh;
       overflow: hidden;
       touch-action: none;
     }
-
     #header {
       background: linear-gradient(45deg, #ff9800, #ff5722);
       color: white;
       padding: 12px 5px;
-      font-size: 1.2rem; /* 🔥 글씨 크기 조정 */
+      font-size: 1.2rem;
       font-weight: bold;
       border-bottom: 5px solid #d84315;
       width: 100%;
       display: flex;
       justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap; /* 🔥 화면 크기에 맞게 조정 */
+      gap: 5px;
+      flex-wrap: wrap;
     }
-
     #timer, #score {
       font-size: 1.5rem;
       font-weight: bold;
       color: yellow;
     }
-
     #game-container {
       width: 90%;
       max-width: 1200px;
@@ -45,8 +42,9 @@
       background: url('https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcRsal9%2FbtsMEBzPcW3%2FYmq07oLzENb4msnTxdz10k%2Fimg.jpg') no-repeat center center;
       background-size: cover;
       position: relative;
+      filter: blur(5px);
+      transition: filter 0.5s;
     }
-
     #game-board {
       display: grid;
       grid-template-columns: repeat(10, 1fr);
@@ -54,7 +52,6 @@
       width: 100%;
       padding: 10px 0;
     }
-
     .apple {
       aspect-ratio: 1;
       background: orange;
@@ -68,22 +65,56 @@
       transition: opacity 0.5s;
       opacity: 1;
     }
-
     .selected {
       background: yellow;
       color: black;
       transform: scale(1.1);
       box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
     }
-
+    /* 게임 시작 오버레이 */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #overlay button {
+      padding: 20px 40px;
+      font-size: 2rem;
+      background: #ff5722;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+    #overlay button:hover {
+      transform: scale(1.1);
+    }
+    /* 하단 버튼 컨테이너 (헤더와 비슷한 스타일) */
     .btn-container {
+      background: linear-gradient(45deg, #ff9800, #ff5722);
+      color: white;
+      padding: 12px 5px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-top: 5px solid #d84315;
       display: flex;
       justify-content: center;
       gap: 15px;
-      margin-top: 15px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
     }
-
-    button {
+    .btn-container button {
       padding: 15px 25px;
       font-size: 1.2rem;
       font-weight: bold;
@@ -95,138 +126,217 @@
       transition: all 0.3s ease;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
-
-    button:hover {
+    .btn-container button:hover {
       background: linear-gradient(45deg, #ff3d00, #ff9100);
       transform: scale(1.1);
     }
-
-    button:active {
+    .btn-container button:active {
       transform: scale(0.95);
     }
   </style>
 </head>
 <body>
   <div id="header">
-    ⏳ 남은시간:<span id="timer">180</span>초| 🎯 점수:<span id="score">0</span>점
+    ⏳남은시간:<span id="timer">180</span>초 🎯점수:<span id="score">0</span>점
   </div>
   <div id="game-container">
     <div id="game-board"></div>
-    <div class="btn-container">
-      <button id="restart-btn">다시하기</button>
-      <button id="regenerate-btn">재생성</button>
-    </div>
+  </div>
+  <div class="btn-container">
+    <button id="restart-btn">다시하기</button>
+    <button id="regenerate-btn">재생성</button>
+  </div>
+  <div id="overlay">
+    <button id="start-btn">게임시작</button>
   </div>
 
-<script>
-  const ROWS = 14, COLS = 10, boardSize = ROWS * COLS;
-  let selectedApples = [], score = 0;
-  let timer = 180, timerInterval, gameActive = true;
-  let vibratedApples = new Set(); 
-  let sound = new Audio('https://blog.kakaocdn.net/dn/QS2Yf/btsjas57Dvt/hlplcZYpNsYAeExA2tHZi0/tfile.mp3');
+  <script>
+    const ROWS = 14, COLS = 10, boardSize = ROWS * COLS;
+    let selectedApples = [], score = 0;
+    let timer = 180, timerInterval, gameActive = false;
+    let vibratedApples = new Set(); 
+    let sound = new Audio('https://blog.kakaocdn.net/dn/QS2Yf/btsjas57Dvt/hlplcZYpNsYAeExA2tHZi0/tfile.mp3');
 
-  function generateNumbers() {
-    let numbers = [];
-    for (let i = 0; i < boardSize / 2; i++) {
-      let num1 = Math.floor(Math.random() * 9) + 1;
-      let num2 = 10 - num1;
-      numbers.push(num1, num2);
-    }
-    return numbers.sort(() => Math.random() - 0.5);
-  }
-
-  function startTimer() {
-    clearInterval(timerInterval);
-    timer = 180;
-    document.getElementById("timer").textContent = timer;
-    timerInterval = setInterval(() => {
-      if (timer > 0) {
-        timer--;
-        document.getElementById("timer").textContent = timer;
-      } else {
-        clearInterval(timerInterval);
-        gameActive = false;
-        alert("⏰ 게임 종료! 최종 점수: " + score);
+    function generateNumbers() {
+      let numbers = [];
+      // 전체 보드는 짝수 개의 사과로 구성되도록 2개씩 묶어서 생성
+      for (let i = 0; i < boardSize / 2; i++) {
+        let num1 = Math.floor(Math.random() * 9) + 1;
+        let num2 = 10 - num1;
+        numbers.push(num1, num2);
       }
-    }, 1000);
-  }
+      return numbers.sort(() => Math.random() - 0.5);
+    }
 
-  function createBoard() {
-    document.getElementById("score").textContent = "0";
-    score = 0;
-    gameActive = true;
-    document.getElementById("timer").textContent = "180";
+    function startTimer() {
+      clearInterval(timerInterval);
+      timer = 180;
+      document.getElementById("timer").textContent = timer;
+      timerInterval = setInterval(() => {
+        if (timer > 0) {
+          timer--;
+          document.getElementById("timer").textContent = timer;
+        } else {
+          clearInterval(timerInterval);
+          gameActive = false;
+          alert("⏰ 게임 종료! 최종 점수: " + score);
+        }
+      }, 1000);
+    }
 
-    const board = document.getElementById("game-board");
-    board.innerHTML = "";
-    let numbers = generateNumbers();
+    function createBoard() {
+      document.getElementById("score").textContent = "0";
+      score = 0;
+      gameActive = false;
+      document.getElementById("timer").textContent = "180";
 
-    numbers.forEach((num, index) => {
-      const apple = document.createElement("div");
-      apple.classList.add("apple");
-      apple.textContent = num;
-      apple.dataset.index = index;
-      apple.addEventListener("touchstart", startSelection);
-      apple.addEventListener("touchmove", selectApple);
-      apple.addEventListener("touchend", endSelection);
-      board.appendChild(apple);
+      const board = document.getElementById("game-board");
+      board.innerHTML = "";
+      let numbers = generateNumbers();
+
+      numbers.forEach((num, index) => {
+        const apple = document.createElement("div");
+        apple.classList.add("apple");
+        apple.textContent = num;
+        apple.dataset.index = index;
+        apple.addEventListener("touchstart", startSelection);
+        apple.addEventListener("touchmove", selectApple);
+        apple.addEventListener("touchend", endSelection);
+        board.appendChild(apple);
+      });
+    }
+
+    function startGame() {
+      gameActive = true;
+      document.getElementById("game-container").style.filter = "none";
+      startTimer();
+    }
+
+    function startSelection(event) {
+      if (!gameActive) return;
+      event.preventDefault();
+      selectedApples = [];
+      vibratedApples.clear();
+      selectApple(event);
+    }
+
+    function triggerVibration(index) {
+      if (!vibratedApples.has(index)) { 
+        vibratedApples.add(index);
+        if (navigator.vibrate) navigator.vibrate(50); 
+      }
+    }
+
+    function selectApple(event) {
+      event.preventDefault();
+      let touch = event.touches ? event.touches[0] : event;
+      let apple = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!apple || !apple.classList.contains("apple")) return;
+
+      if (!selectedApples.includes(apple)) {
+        selectedApples.push(apple);
+        apple.classList.add("selected");
+        triggerVibration(apple.dataset.index); 
+      }
+    }
+
+    function endSelection() {
+      document.removeEventListener("pointermove", selectApple);
+      document.removeEventListener("pointerup", endSelection);
+      document.removeEventListener("touchmove", selectApple);
+      document.removeEventListener("touchend", endSelection);
+
+      let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);
+      if (sum === 10) {
+        selectedApples.forEach(apple => {
+          apple.style.opacity = "0";
+          apple.style.pointerEvents = "none";
+        });
+
+        score += selectedApples.length * 2;
+        document.getElementById("score").textContent = score;
+        sound.play();
+      }
+
+      selectedApples.forEach(apple => apple.classList.remove("selected"));
+    }
+
+    // 재생성 기능 구현: 남아있는 사과들에서 10을 만들 수 있는 조합이 없을 경우에만 숫자를 다시 생성
+    function hasValidCombination(numbers) {
+      const n = numbers.length;
+      const memo = {};
+      
+      function helper(i, sum, count) {
+        const key = i + '-' + sum + '-' + count;
+        if (key in memo) return memo[key];
+        if (sum === 10 && count >= 2) return true;
+        if (i === n || sum > 10) return false;
+        // numbers[i] 포함
+        if (helper(i + 1, sum + numbers[i], count + 1)) {
+          memo[key] = true;
+          return true;
+        }
+        // numbers[i] 제외
+        if (helper(i + 1, sum, count)) {
+          memo[key] = true;
+          return true;
+        }
+        memo[key] = false;
+        return false;
+      }
+      
+      return helper(0, 0, 0);
+    }
+
+    function regenerateBoard() {
+      const board = document.getElementById("game-board");
+      // 남은 사과들(사라지지 않은 사과)만 선택
+      let remainingApples = Array.from(board.getElementsByClassName("apple")).filter(apple => apple.style.opacity !== "0" && apple.style.pointerEvents !== "none");
+      if (remainingApples.length < 2) {
+        alert("재생성할 사과가 충분하지 않습니다!");
+        return;
+      }
+      let numbers = remainingApples.map(apple => Number(apple.textContent));
+      if (hasValidCombination(numbers)) {
+        alert("아직 10을 만들 수 있는 조합이 남아있습니다!");
+        return;
+      } else {
+        // 최소 한 쌍의 유효 조합을 보장하기 위해 두 개의 사과 선택 후 숫자 재할당
+        let indices = remainingApples.map((_, idx) => idx);
+        indices.sort(() => Math.random() - 0.5);
+        const firstIndex = indices[0];
+        const secondIndex = indices[1];
+        const r = Math.floor(Math.random() * 9) + 1;
+        remainingApples[firstIndex].textContent = r;
+        remainingApples[secondIndex].textContent = 10 - r;
+        // 나머지 사과는 임의의 숫자로 재할당
+        for (let i = 0; i < remainingApples.length; i++) {
+          if (i === firstIndex || i === secondIndex) continue;
+          let randomNum = Math.floor(Math.random() * 9) + 1;
+          remainingApples[i].textContent = randomNum;
+        }
+        alert("재생성 완료! 10을 만들 수 있는 조합이 추가되었습니다.");
+      }
+    }
+
+    // 이벤트 리스너 설정
+    document.getElementById("start-btn").addEventListener("click", () => {
+      document.getElementById("overlay").style.display = "none";
+      startGame();
     });
 
-    startTimer();
-  }
+    document.getElementById("restart-btn").addEventListener("click", () => {
+      createBoard();
+      startGame();
+    });
+    
+    document.getElementById("regenerate-btn").addEventListener("click", () => {
+      regenerateBoard();
+    });
 
-  function startSelection(event) {
-    if (!gameActive) return;
-    event.preventDefault();
-    selectedApples = [];
-    vibratedApples.clear();
-    selectApple(event);
-  }
-
-  function triggerVibration(index) {
-    if (!vibratedApples.has(index)) { 
-      vibratedApples.add(index);
-      if (navigator.vibrate) navigator.vibrate(50); 
-    }
-  }
-
-  function selectApple(event) {
-    event.preventDefault();
-    let touch = event.touches ? event.touches[0] : event;
-    let apple = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (!apple || !apple.classList.contains("apple")) return;
-
-    if (!selectedApples.includes(apple)) {
-      selectedApples.push(apple);
-      apple.classList.add("selected");
-      triggerVibration(apple.dataset.index); 
-    }
-  }
-
-  function endSelection() {
-    document.removeEventListener("pointermove", selectApple);
-    document.removeEventListener("pointerup", endSelection);
-    document.removeEventListener("touchmove", selectApple);
-    document.removeEventListener("touchend", endSelection);
-
-    let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);
-    if (sum === 10) {
-      selectedApples.forEach(apple => {
-        apple.style.opacity = "0";
-        apple.style.pointerEvents = "none";
-      });
-
-      score += selectedApples.length * 2;
-      document.getElementById("score").textContent = score;
-      sound.play();
-    }
-
-    selectedApples.forEach(apple => apple.classList.remove("selected"));
-  }
-
-  document.getElementById("restart-btn").addEventListener("click", createBoard);
-  document.addEventListener("DOMContentLoaded", createBoard);
-</script>
-
+    document.addEventListener("DOMContentLoaded", () => {
+      createBoard();
+    });
+  </script>
 </body>
 </html>
