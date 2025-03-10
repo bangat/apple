@@ -15,6 +15,7 @@
       touch-action: none;
       position: relative;
     }
+    /* 헤더 */
     #header {
       background: linear-gradient(45deg, #ff9800, #ff5722);
       color: white;
@@ -33,10 +34,46 @@
       font-weight: bold;
       color: yellow;
     }
+    /* 인벤토리 컨테이너: 헤더 바로 아래에 배치 */
+    #inventory-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 10px auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+    }
+    #inventory-title {
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.3rem;
+      min-width: 60px; /* "아이템" 글씨 공간 확보 */
+    }
+    #inventory {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;  /* 아이템 많아지면 자동 줄바꿈 */
+      justify-content: flex-start;
+    }
+    .item {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    /* 게임 컨테이너 */
     #game-container {
       width: 90%;
       max-width: 1200px;
-      margin: 20px auto;
+      margin: 0 auto 20px auto; /* 아래 버튼과 간격 */
       padding: 10px;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -46,8 +83,10 @@
       filter: blur(5px);
       transition: filter 0.5s;
     }
+    /* 게임보드 */
     #game-board {
       display: grid;
+      /* ROWS=12, COLS=10 => 120칸 */
       grid-template-columns: repeat(10, 1fr);
       gap: 5px;
       width: 100%;
@@ -65,8 +104,8 @@
       user-select: none;
       transition: opacity 0.5s;
       opacity: 1;
-      position: relative; /* 시간 아이콘 배치용 */
-      overflow: hidden;   /* 혹시 아이콘이 튀어나가지 않도록 */
+      position: relative;
+      overflow: hidden;
     }
     .selected {
       background: yellow;
@@ -74,44 +113,25 @@
       transform: scale(1.1);
       box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
     }
-    /* 시간 보너스 사과 표시: 작은 시계 아이콘 (왼쪽 상단) */
-    .time-bonus::after {
-      content: "⏰";
+    /* 폭탄 사과 (반투명 아이콘) */
+    .bomb-apple::after {
+      content: "💣";
       position: absolute;
       top: 4px;
-      left: 4px;
-      font-size: 0.9rem;
-      color: #fff;
-      opacity: 0.8; /* 약간 투명도 */
+      right: 4px;
+      font-size: 1rem;
+      opacity: 0.6; /* 숫자가 비치도록 반투명 */
     }
-    /* 게임 시작 오버레이 */
-    #overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
+    /* 시간 가속 사과 */
+    .time-accelerator-apple::after {
+      content: "⏱";
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 1rem;
+      opacity: 0.8;
     }
-    #overlay button {
-      padding: 20px 40px;
-      font-size: 2rem;
-      background: #ff5722;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease;
-    }
-    #overlay button:hover {
-      transform: scale(1.1);
-    }
-    /* 하단 버튼 컨테이너 (헤더와 비슷한 스타일) */
+    /* 하단 버튼 컨테이너 */
     .btn-container {
       background: linear-gradient(45deg, #ff9800, #ff5722);
       color: white;
@@ -146,52 +166,99 @@
     .btn-container button:active {
       transform: scale(0.95);
     }
+    /* 게임 시작 오버레이 */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #overlay button {
+      padding: 20px 40px;
+      font-size: 2rem;
+      background: #ff5722;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+    #overlay button:hover {
+      transform: scale(1.1);
+    }
     /* 콤보 이펙트 */
     #combo-effect {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 3.5rem;   /* 더 크게 */
-      color: #ffec00;      /* 눈에 띄는 노란색 */
-      text-shadow: 2px 2px 4px #000; /* 배경 분리 */
+      font-size: 3.5rem;
+      color: #ffec00;
+      text-shadow: 2px 2px 4px #000;
       pointer-events: none;
       opacity: 0;
-      z-index: 9999; /* 최상단 */
+      z-index: 9999;
     }
   </style>
 </head>
 <body>
+  <!-- 헤더 -->
   <div id="header">
     ⏳남은시간:<span id="timer">180</span>초 🎯점수:<span id="score">0</span>점
   </div>
+
+  <!-- 인벤토리: 헤더 바로 아래 -->
+  <div id="inventory-container">
+    <div id="inventory-title">아이템</div>
+    <div id="inventory"></div>
+  </div>
+
+  <!-- 게임 컨테이너 -->
   <div id="game-container">
     <div id="game-board"></div>
   </div>
+
+  <!-- 하단 버튼 -->
   <div class="btn-container">
     <button id="restart-btn">다시하기</button>
     <button id="regenerate-btn">재생성</button>
   </div>
+
+  <!-- 게임시작 오버레이 -->
   <div id="overlay">
     <button id="start-btn">게임시작</button>
   </div>
-  <!-- 콤보/보너스 이펙트 표시용 -->
   <div id="combo-effect"></div>
 
   <script>
-    const ROWS = 14, COLS = 10, boardSize = ROWS * COLS;
+    // 행/열 크기 조정 (2행 빼서 12행)
+    const ROWS = 12, COLS = 10, boardSize = ROWS * COLS;
     let selectedApples = [], score = 0;
     let timer = 180, timerInterval, gameActive = false;
-    let vibratedApples = new Set(); 
+    let vibratedApples = new Set();
+    let timerSpeed = 1; // 타이머 감소 속도 (기본 1)
+    
+    // 효과음
     let sound = new Audio('https://blog.kakaocdn.net/dn/QS2Yf/btsjas57Dvt/hlplcZYpNsYAeExA2tHZi0/tfile.mp3');
+    let timeBonusSound = new Audio('https://example.com/timebonus.mp3'); // 타임보너스 효과음 (원하는 URL로 교체)
 
     // 콤보 관련 변수
     let comboCount = 0;
     let lastComboTime = 0; // 밀리초 단위
 
+    // 폭탄/시간가속 아이템 최대 개수
+    let bombMaxCount = 2;
+    let timeAccelMaxCount = 2;
+
     function generateNumbers() {
       let numbers = [];
-      // 전체 보드를 짝수 개의 사과로 구성되도록 2개씩 묶어서 생성
       for (let i = 0; i < boardSize / 2; i++) {
         let num1 = Math.floor(Math.random() * 9) + 1;
         let num2 = 10 - num1;
@@ -206,8 +273,9 @@
       document.getElementById("timer").textContent = timer;
       timerInterval = setInterval(() => {
         if (timer > 0) {
-          timer--;
-          document.getElementById("timer").textContent = timer;
+          timer -= timerSpeed;
+          if(timer < 0) timer = 0;
+          document.getElementById("timer").textContent = Math.floor(timer);
         } else {
           clearInterval(timerInterval);
           gameActive = false;
@@ -224,6 +292,13 @@
       comboCount = 0;
       lastComboTime = 0;
 
+      // 인벤토리 초기화
+      document.getElementById("inventory").innerHTML = "";
+
+      // 폭탄/시간가속 카운트 초기화
+      let bombCount = 0;
+      let timeAccelCount = 0;
+
       const board = document.getElementById("game-board");
       board.innerHTML = "";
       let numbers = generateNumbers();
@@ -233,9 +308,23 @@
         apple.classList.add("apple");
         apple.textContent = num;
         apple.dataset.index = index;
+
+        // 터치 이벤트 등록
         apple.addEventListener("touchstart", startSelection);
         apple.addEventListener("touchmove", selectApple);
         apple.addEventListener("touchend", endSelection);
+
+        // 10% 확률로 폭탄 or 시간가속 부여 (최대 2개씩)
+        // 폭탄부터 체크 -> 실패하면 시간가속 체크
+        if (bombCount < bombMaxCount && Math.random() < 0.1) {
+          apple.classList.add("bomb-apple");
+          bombCount++;
+        } 
+        else if (timeAccelCount < timeAccelMaxCount && Math.random() < 0.1) {
+          apple.classList.add("time-accelerator-apple");
+          timeAccelCount++;
+        }
+
         board.appendChild(apple);
       });
     }
@@ -269,7 +358,7 @@
       if (!selectedApples.includes(apple)) {
         selectedApples.push(apple);
         apple.classList.add("selected");
-        triggerVibration(apple.dataset.index); 
+        triggerVibration(apple.dataset.index);
       }
     }
 
@@ -279,109 +368,121 @@
       document.removeEventListener("touchmove", selectApple);
       document.removeEventListener("touchend", endSelection);
 
-      // time-bonus 사과는 실제 숫자에 아이콘이 붙지 않으므로, 그냥 parseInt로 변환
       let sum = selectedApples.reduce((acc, apple) => acc + parseInt(apple.textContent, 10), 0);
-
       if (sum === 10) {
-        // 보너스 사과 사용 여부 체크
-        let bonusUsed = selectedApples.some(apple => apple.classList.contains("time-bonus"));
-        if (bonusUsed) {
-          // 시간 10초 추가
-          timer += 10;
-          document.getElementById("timer").textContent = timer;
-          // "Time Bonus!"는 여기서만 표시
-          showComboEffect("Time Bonus!", 2000);
-          // 보너스 사과 해제
-          selectedApples.forEach(apple => {
-            if (apple.classList.contains("time-bonus")) {
-              apple.classList.remove("time-bonus");
-            }
-          });
-        }
-        // 사과 제거
+        // 특별 아이템 효과 적용
+        selectedApples.forEach(apple => {
+          if (apple.classList.contains("bomb-apple")) {
+            bombEffect(apple);
+          }
+          if (apple.classList.contains("time-accelerator-apple")) {
+            timeAcceleratorEffect();
+          }
+        });
+        // 일반 사과 제거
         selectedApples.forEach(apple => {
           apple.style.opacity = "0";
           apple.style.pointerEvents = "none";
         });
-        // 점수 반영
         score += selectedApples.length * 2;
         document.getElementById("score").textContent = score;
         sound.play();
-        // 콤보 처리
         handleCombo();
       }
-      // 선택 해제
       selectedApples.forEach(apple => apple.classList.remove("selected"));
     }
 
-    // 콤보 시스템 처리 함수
+    // 폭탄 효과: 해당 사과의 행과 열의 사과 전부 제거
+    function bombEffect(apple) {
+      let index = parseInt(apple.dataset.index, 10);
+      let row = Math.floor(index / COLS);
+      let col = index % COLS;
+      const board = document.getElementById("game-board");
+      const allApples = board.getElementsByClassName("apple");
+      Array.from(allApples).forEach(a => {
+        let i = parseInt(a.dataset.index, 10);
+        let r = Math.floor(i / COLS);
+        let c = i % COLS;
+        if (r === row || c === col) {
+          a.style.opacity = "0";
+          a.style.pointerEvents = "none";
+        }
+      });
+      // 추가 점수 부여
+      score += 10;
+      document.getElementById("score").textContent = score;
+    }
+
+    // 시간 가속 효과: 5초간 타이머 감소 속도 2배
+    function timeAcceleratorEffect() {
+      timerSpeed = 2;
+      setTimeout(() => {
+        timerSpeed = 1;
+      }, 5000);
+    }
+
+    // 콤보 시스템 처리: 4초 이내 연속 성공 시 콤보 누적
     function handleCombo() {
       const now = Date.now();
-      // 4초(4000ms) 이내에 연속 성공이면 콤보 누적
       if (now - lastComboTime <= 4000) {
         comboCount++;
       } else {
         comboCount = 1;
       }
       lastComboTime = now;
-
-      // 콤보 이펙트 표시 (2초 정도 보여주고 사라지게)
       showComboEffect("COMBO x" + comboCount + "!", 2000);
-
-      // 추가 점수(예: 콤보당 5점씩)
       score += comboCount * 5;
       document.getElementById("score").textContent = score;
-
-      // 3콤보 이상 달성 시 보너스 사과 변환 (이때는 "Time Bonus!" 안 뜸)
+      // 3콤보 달성 시 인벤토리에 타임보너스 아이템 추가
       if (comboCount >= 3) {
-        transformBonusApple();
-        // 콤보 카운트 초기화(계속 누적하고 싶다면 이 부분 제거)
+        addInventoryItem("timeBonus");
         comboCount = 0;
       }
     }
 
-    // 화면 중앙에 콤보/보너스 이펙트 표시
-    // duration: 화면에 보이는 시간(밀리초)
+    // 콤보/이펙트 텍스트 표시
     function showComboEffect(text, duration = 2000) {
       const comboDiv = document.getElementById("combo-effect");
       comboDiv.textContent = text;
-
-      // 초기 상태 리셋
       comboDiv.style.transition = "none";
       comboDiv.style.opacity = "1";
       comboDiv.style.transform = "translate(-50%, -50%) scale(1)";
-
-      // 강제로 리플로우(브라우저가 스타일 변화를 인식하도록)
       void comboDiv.offsetWidth;
-
-      // 이후 애니메이션 적용
       comboDiv.style.transition = "all 0.8s ease-out";
-
-      // 일정 시간 후 사라짐
       setTimeout(() => {
         comboDiv.style.opacity = "0";
         comboDiv.style.transform = "translate(-50%, -50%) scale(1.3)";
-      }, duration - 800); // 2초 - 페이드아웃 0.8초
-
-      // 완전히 사라진 뒤 초기화
+      }, duration - 800);
       setTimeout(() => {
         comboDiv.style.transition = "none";
       }, duration);
     }
 
-    // 보너스 사과로 변환 (시간 추가용) - 여기서는 "Time Bonus!" 이펙트 표시 안 함
-    function transformBonusApple() {
-      const board = document.getElementById("game-board");
-      const remainingApples = Array.from(board.getElementsByClassName("apple")).filter(apple =>
-        apple.style.opacity !== "0" &&
-        apple.style.pointerEvents !== "none" &&
-        !apple.classList.contains("time-bonus")
-      );
-      if (remainingApples.length > 0) {
-        const randomIndex = Math.floor(Math.random() * remainingApples.length);
-        const bonusApple = remainingApples[randomIndex];
-        bonusApple.classList.add("time-bonus");
+    // 인벤토리 아이템 추가
+    function addInventoryItem(type) {
+      const inventoryDiv = document.getElementById("inventory");
+      const itemDiv = document.createElement("div");
+      itemDiv.classList.add("item");
+      itemDiv.dataset.type = type;
+      if (type === "timeBonus") {
+        itemDiv.textContent = "⏰";
       }
+      itemDiv.addEventListener("click", function() {
+        useInventoryItem(this);
+      });
+      inventoryDiv.appendChild(itemDiv);
+    }
+
+    // 인벤토리 아이템 사용
+    function useInventoryItem(itemElement) {
+      const type = itemElement.dataset.type;
+      if (type === "timeBonus") {
+        timer += 10;
+        document.getElementById("timer").textContent = Math.floor(timer);
+        if(timeBonusSound) timeBonusSound.play();
+        showComboEffect("Time Bonus!", 2000);
+      }
+      itemElement.remove();
     }
 
     // 재생성 기능
@@ -409,7 +510,7 @@
 
     function regenerateBoard() {
       const board = document.getElementById("game-board");
-      let remainingApples = Array.from(board.getElementsByClassName("apple")).filter(apple => 
+      let remainingApples = Array.from(board.getElementsByClassName("apple")).filter(apple =>
         apple.style.opacity !== "0" && apple.style.pointerEvents !== "none"
       );
       if (remainingApples.length < 2) {
