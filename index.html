@@ -180,18 +180,26 @@
       selectApple(event);
     }
 
-    function selectApple(event) {
-      if (!isDragging || !gameActive) return;
-      event.preventDefault();
-      const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
-      if (!apple || !apple.classList.contains("apple")) return;
+function triggerVibration(index) {
+  if (!vibratedApples.has(index)) {  // 중복 진동 방지
+    vibratedApples.add(index);  // 이미 진동한 사과 기록
+    if (navigator.vibrate) navigator.vibrate(30);  // 30ms 진동 발생
+  }
+}
 
-      if (!selectedApples.includes(apple)) {
-        selectedApples.push(apple);
-        apple.classList.add("selected");
-        triggerVibration(apple.dataset.index);
-      }
-    }
+    function selectApple(event) {
+  if (!isDragging || !gameActive) return;
+  event.preventDefault();
+  
+  const apple = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
+  if (!apple || !apple.classList.contains("apple")) return;
+
+  if (!selectedApples.includes(apple)) {
+    selectedApples.push(apple);
+    apple.classList.add("selected");
+    triggerVibration(apple.dataset.index);  // ✅ 지나갈 때마다 30ms 진동 발생
+  }
+}
 
     function endSelection() {
       isDragging = false;
