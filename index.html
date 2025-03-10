@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>10점 만들기 by 윤서</title>
+  <title>10점</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -13,32 +13,36 @@
       min-height: 100vh;
       overflow: hidden;
       touch-action: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    #header {
+    /* 🔥 헤더 & 하단 버튼 공통 스타일 */
+    .top-bar, .bottom-bar {
       background: linear-gradient(45deg, #ff9800, #ff5722);
       color: white;
-      padding: 12px 5px;
-      font-size: 1.2rem; /* 🔥 글씨 크기 조정 */
+      padding: 12px;
+      font-size: clamp(1rem, 1.2rem, 1.5rem); /* 🔥 자동 크기 조정 */
       font-weight: bold;
-      border-bottom: 5px solid #d84315;
       width: 100%;
       display: flex;
       justify-content: center;
       gap: 15px;
-      flex-wrap: wrap; /* 🔥 화면 크기에 맞게 조정 */
+      border-bottom: 3px solid #d84315;
     }
 
     #timer, #score {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: bold;
       color: yellow;
     }
 
+    /* 🔥 게임 컨테이너 */
     #game-container {
       width: 90%;
       max-width: 1200px;
-      margin: 20px auto;
+      margin: 10px auto;
       padding: 10px;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -76,11 +80,32 @@
       box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
     }
 
-    .btn-container {
+    /* 🔥 진행 게이지 */
+    .progress-bar {
+      width: 90%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 5px auto;
+    }
+
+    .progress {
+      height: 100%;
+      background: yellow;
+      transition: width 1s linear;
+    }
+
+    /* 🔥 버튼 영역 */
+    .bottom-bar {
       display: flex;
       justify-content: center;
       gap: 15px;
+      padding: 15px;
+      width: 100%;
       margin-top: 15px;
+      background: linear-gradient(45deg, #ff9800, #ff5722);
+      border-top: 3px solid #d84315;
     }
 
     button {
@@ -107,22 +132,23 @@
   </style>
 </head>
 <body>
-  <div id="header">
+  <div class="top-bar">
     ⏳ 남은시간: <span id="timer">180</span>초 | 🎯 점수: <span id="score">0</span>점
   </div>
+  <div class="progress-bar"><div class="progress"></div></div>
   <div id="game-container">
     <div id="game-board"></div>
-    <div class="btn-container">
-      <button id="restart-btn">다시하기</button>
-      <button id="regenerate-btn">재생성</button>
-    </div>
+  </div>
+  <div class="bottom-bar">
+    <button id="restart-btn">다시하기</button>
+    <button id="regenerate-btn">재생성</button>
   </div>
 
 <script>
   const ROWS = 15, COLS = 10, boardSize = ROWS * COLS;
   let selectedApples = [], score = 0;
   let timer = 180, timerInterval, gameActive = true;
-  let vibratedApples = new Set(); 
+  let vibratedApples = new Set();
   let sound = new Audio('https://blog.kakaocdn.net/dn/QS2Yf/btsjas57Dvt/hlplcZYpNsYAeExA2tHZi0/tfile.mp3');
 
   function generateNumbers() {
@@ -139,16 +165,23 @@
     clearInterval(timerInterval);
     timer = 180;
     document.getElementById("timer").textContent = timer;
+    updateProgressBar();
+
     timerInterval = setInterval(() => {
       if (timer > 0) {
         timer--;
         document.getElementById("timer").textContent = timer;
+        updateProgressBar();
       } else {
         clearInterval(timerInterval);
         gameActive = false;
         alert("⏰ 게임 종료! 최종 점수: " + score);
       }
     }, 1000);
+  }
+
+  function updateProgressBar() {
+    document.querySelector(".progress").style.width = `${(timer / 180) * 100}%`;
   }
 
   function createBoard() {
@@ -161,67 +194,14 @@
     board.innerHTML = "";
     let numbers = generateNumbers();
 
-    numbers.forEach((num, index) => {
+    numbers.forEach(num => {
       const apple = document.createElement("div");
       apple.classList.add("apple");
       apple.textContent = num;
-      apple.dataset.index = index;
-      apple.addEventListener("touchstart", startSelection);
-      apple.addEventListener("touchmove", selectApple);
-      apple.addEventListener("touchend", endSelection);
       board.appendChild(apple);
     });
 
     startTimer();
-  }
-
-  function startSelection(event) {
-    if (!gameActive) return;
-    event.preventDefault();
-    selectedApples = [];
-    vibratedApples.clear();
-    selectApple(event);
-  }
-
-  function triggerVibration(index) {
-    if (!vibratedApples.has(index)) { 
-      vibratedApples.add(index);
-      if (navigator.vibrate) navigator.vibrate(50); 
-    }
-  }
-
-  function selectApple(event) {
-    event.preventDefault();
-    let touch = event.touches ? event.touches[0] : event;
-    let apple = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (!apple || !apple.classList.contains("apple")) return;
-
-    if (!selectedApples.includes(apple)) {
-      selectedApples.push(apple);
-      apple.classList.add("selected");
-      triggerVibration(apple.dataset.index); 
-    }
-  }
-
-  function endSelection() {
-    document.removeEventListener("pointermove", selectApple);
-    document.removeEventListener("pointerup", endSelection);
-    document.removeEventListener("touchmove", selectApple);
-    document.removeEventListener("touchend", endSelection);
-
-    let sum = selectedApples.reduce((acc, apple) => acc + Number(apple.textContent), 0);
-    if (sum === 10) {
-      selectedApples.forEach(apple => {
-        apple.style.opacity = "0";
-        apple.style.pointerEvents = "none";
-      });
-
-      score += selectedApples.length * 2;
-      document.getElementById("score").textContent = score;
-      sound.play();
-    }
-
-    selectedApples.forEach(apple => apple.classList.remove("selected"));
   }
 
   document.getElementById("restart-btn").addEventListener("click", createBoard);
