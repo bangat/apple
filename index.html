@@ -42,7 +42,6 @@
       font-weight: bold;
       color: #ff5722; /* 포인트 색상(오렌지) */
     }
-
     /* 아이템 컨테이너 */
     #inventory-container {
       width: 90%;
@@ -77,7 +76,6 @@
       font-size: 1.3rem;
       cursor: pointer;
     }
-
     /* 게임 컨테이너 */
     #game-container {
       width: 90%;
@@ -90,8 +88,7 @@
       background: #fff;
       position: relative;
     }
-
-    /* 스테이지 표시 박스 */
+    /* 스테이지 표시 박스 (게임 컨테이너 상단) */
     #stage-indicator {
       margin-bottom: 10px;
       background: linear-gradient(45deg, #ffe0cc, #ffd1dc);
@@ -99,11 +96,10 @@
       font-size: 1.3rem;
       font-weight: bold;
       padding: 10px 0;
-      border-radius: 8px;
+      border-radius: 8px 8px 0 0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
     }
-
     /* 게임보드 */
     #game-board {
       display: grid;
@@ -140,7 +136,6 @@
       pointer-events: none;
       background: transparent;
     }
-
     /* 하단 버튼 컨테이너 */
     .btn-container {
       background: #f5f5f5;
@@ -177,7 +172,6 @@
     .btn-container button:active {
       transform: scale(0.95);
     }
-
     /* 오버레이 (게임시작 및 스테이지 클리어 모달) */
     #overlay {
       position: fixed;
@@ -207,28 +201,27 @@
     #overlay button:hover {
       transform: scale(1.1);
     }
-
-    /* 모달창 (고급 팝업) */
+    /* 모달창 (고급 팝업) - 하단 고정 */
     .modal {
       display: none;
       position: fixed;
       z-index: 4000;
       left: 0;
-      top: 0;
       width: 100%;
-      height: 100%;
-      overflow: auto;
+      height: auto;
+      bottom: 0;
       background-color: rgba(0,0,0,0.5);
     }
     .modal-content {
       background-color: #fff;
-      margin: 10% auto;
       padding: 20px;
-      border-radius: 10px;
-      width: 80%;
+      border-radius: 10px 10px 0 0;
+      width: 90%;
       max-width: 600px;
-      position: relative;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      margin: 0 auto;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+      font-size: 1rem;
+      text-align: center;
     }
     .close-btn {
       position: absolute;
@@ -238,7 +231,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     /* 콤보 이펙트 */
     #combo-effect {
       position: fixed;
@@ -253,7 +245,6 @@
       z-index: 2000;
       white-space: nowrap;
     }
-
     /* 파티클 컨테이너 */
     #particle-container {
       position: fixed;
@@ -284,7 +275,6 @@
         opacity: 0;
       }
     }
-
     /* 반응형 */
     @media (max-width: 600px) {
       .btn-container button {
@@ -300,7 +290,7 @@
 <body>
   <!-- 헤더 -->
   <div id="header">
-    ⏳남은시간:<span id="timer">180</span>초 🎯점수:<span id="score">0</span>점
+    ⏳남은시간:<span id="timer">180</span>초 | 🎯점수:<span id="score">0</span>점
   </div>
 
   <!-- 아이템 컨테이너 (상단) -->
@@ -314,7 +304,6 @@
     <div id="stage-indicator">
       스테이지 <span id="stage">1/5</span>
     </div>
-
     <!-- 실제 게임보드 -->
     <div id="game-board"></div>
   </div>
@@ -347,6 +336,9 @@
   <div id="particle-container"></div>
 
   <script>
+    // 각 스테이지별 시간 (초)
+    const stageTimes = [90, 120, 140, 160, 180];
+
     // 스테이지별 보드 크기 설정
     const stageSizes = [
       { rows: 5, cols: 7 },
@@ -360,7 +352,7 @@
     let boardSize;  // 현재 스테이지의 총 셀 개수 (빈칸 포함)
     let selectedApples = [];
     let score = 0;
-    let timer = 180;
+    let timer = 180;   // 초기값은 createBoard()에서 덮어씀
     let timerInterval;
     let gameActive = false;
     let vibratedApples = new Set();
@@ -386,7 +378,7 @@
     function showModalMessage(message) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
-      modalBody.innerHTML = `<p style="font-size:1.3rem; margin: 20px 0;">${message}</p>`;
+      modalBody.innerHTML = `<p style="font-size:1rem; margin: 10px 0; word-break: keep-all;">${message}</p>`;
       modal.style.display = "block";
     }
 
@@ -394,8 +386,8 @@
     function showStageClearModal(message) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
-      modalBody.innerHTML = `<p style="font-size:1.5rem; margin: 20px 0;">${message}</p>
-                             <button id="next-stage-btn" style="padding:10px 20px; font-size:1rem; border:none; border-radius:5px; background:#ff7d47; color:#fff; cursor:pointer;">다음 스테이지</button>`;
+      modalBody.innerHTML = `<p style="font-size:1rem; margin: 10px 0; word-break: keep-all;">${message}</p>
+                             <button id="next-stage-btn" style="padding:8px 16px; font-size:0.9rem; border:none; border-radius:5px; background:#ff7d47; color:#fff; cursor:pointer;">다음 스테이지</button>`;
       modal.style.display = "block";
       document.getElementById("next-stage-btn").addEventListener("click", () => {
         modal.style.display = "none";
@@ -448,8 +440,11 @@
     function createBoard() {
       document.getElementById("score").textContent = score;
       gameActive = false;
-      timer = 180;
+
+      // 스테이지별 시간 설정
+      timer = stageTimes[currentStage];
       document.getElementById("timer").textContent = timer;
+
       comboCount = 0;
       lastComboTime = 0;
       document.getElementById("inventory").innerHTML = "";
@@ -466,14 +461,14 @@
       let appleCount = boardSize;
       let hasBlank = false;
       // 보드 총 셀 수가 홀수이면 마지막 한 칸은 빈칸 처리
-      if(boardSize % 2 !== 0) {
+      if (boardSize % 2 !== 0) {
         appleCount = boardSize - 1;
         hasBlank = true;
       }
       const numbers = generateNumbers(appleCount);
 
       // 사과 생성
-      for(let i = 0; i < appleCount; i++){
+      for (let i = 0; i < appleCount; i++) {
         const apple = document.createElement("div");
         apple.classList.add("apple");
         apple.dataset.index = i;
@@ -487,7 +482,7 @@
         board.appendChild(apple);
       }
       // 빈칸 추가 (홀수일 경우)
-      if(hasBlank) {
+      if (hasBlank) {
         const blankDiv = document.createElement("div");
         blankDiv.classList.add("blank");
         board.appendChild(blankDiv);
@@ -506,8 +501,6 @@
     // 타이머 시작
     function startTimer() {
       clearInterval(timerInterval);
-      timer = 180;
-      document.getElementById("timer").textContent = timer;
       timerInterval = setInterval(() => {
         if (timerPaused) return;
         if (timer > 0) {
@@ -630,7 +623,7 @@
         switch(randomEffect) {
           case 0:
             effectMessage = "3x3 BOOM💣";
-            bombSound.play().catch(() => defaultSound.play());
+            // 폭탄 효과음 제거: 대상 선택 시에만 재생됩니다.
             applyBombEffect();
             break;
           case 1:
@@ -672,6 +665,7 @@
         showComboEffect("사과를 선택하세요!", 1500);
         return;
       }
+      // 폭탄 효과음는 대상 선택 시에만 재생됨
       bombSound.play().catch(() => defaultSound.play());
       const index = parseInt(apple.dataset.index, 10);
       const stage = stageSizes[currentStage];
@@ -710,12 +704,12 @@
       boardSize = rows * cols;
       let appleCount = boardSize;
       let hasBlank = false;
-      if(boardSize % 2 !== 0) {
+      if (boardSize % 2 !== 0) {
         appleCount = boardSize - 1;
         hasBlank = true;
       }
       const numbers = generateNumbers(appleCount);
-      for(let i = 0; i < appleCount; i++){
+      for (let i = 0; i < appleCount; i++){
         const apple = document.createElement("div");
         apple.classList.add("apple");
         apple.dataset.index = i;
@@ -727,7 +721,7 @@
         apple.addEventListener("touchstart", startSelection);
         board.appendChild(apple);
       }
-      if(hasBlank) {
+      if (hasBlank) {
         const blankDiv = document.createElement("div");
         blankDiv.classList.add("blank");
         board.appendChild(blankDiv);
@@ -747,21 +741,25 @@
       const board = document.getElementById("game-board");
       let remainingApples = Array.from(board.getElementsByClassName("apple"))
         .filter(apple => apple.style.opacity !== "0" && apple.style.pointerEvents !== "none");
-      if (remainingApples.length <= 1) {
-        for (let i = 0; i < 2; i++) {
-          const newApple = document.createElement("div");
-          newApple.classList.add("apple");
-          newApple.dataset.index = `extra-${i}`;
-          const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
-          newApple.style.background = randomColor;
-          const randNum = Math.floor(Math.random() * 9) + 1;
-          const newSpan = document.createElement("span");
-          newSpan.textContent = randNum;
-          newApple.appendChild(newSpan);
-          newApple.addEventListener("touchstart", startSelection);
-          board.appendChild(newApple);
-        }
-        showModalMessage("사과가 1개 이하라서 2개를 새로 생성했습니다!");
+      if (remainingApples.length === 1) {
+        // 남은 사과의 숫자를 구해서 10을 맞추는 새 사과 생성
+        const existingApple = remainingApples[0];
+        let existingNum = parseInt(existingApple.querySelector("span").textContent, 10);
+        let newNum = 10 - existingNum;
+        const newApple = document.createElement("div");
+        newApple.classList.add("apple");
+        newApple.dataset.index = `extra-0`;
+        const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        newApple.style.background = randomColor;
+        const newSpan = document.createElement("span");
+        newSpan.textContent = newNum;
+        newApple.appendChild(newSpan);
+        newApple.addEventListener("touchstart", startSelection);
+        board.appendChild(newApple);
+        showModalMessage("사과가 1개 남아서 1개를 새로 생성했습니다!");
+        return;
+      } else if (remainingApples.length === 0) {
+        showModalMessage("더 이상 재생성할 사과가 없습니다!");
         return;
       }
       let numbers = remainingApples.map(apple => Number(apple.querySelector("span").textContent));
@@ -793,12 +791,10 @@
         if (key in memo) return memo[key];
         if (sum === 10 && count >= 2) return true;
         if (i === n || sum > 10) return false;
-        // 선택
         if (helper(i + 1, sum + numbers[i], count + 1)) {
           memo[key] = true;
           return true;
         }
-        // 스킵
         if (helper(i + 1, sum, count)) {
           memo[key] = true;
           return true;
@@ -821,8 +817,7 @@
     // 스테이지 클리어 처리
     function stageClear() {
       clearInterval(timerInterval);
-      // 마지막 스테이지가 아니라면
-      if(currentStage < stageSizes.length - 1) {
+      if (currentStage < stageSizes.length - 1) {
         showStageClearModal(`스테이지 ${currentStage + 1} 클리어!`);
       } else {
         showModalMessage(`최종 스테이지 클리어! 최종 점수: ${score}`);
@@ -862,19 +857,20 @@
       openModal("inquiry");
     });
 
+    // 게임방법: 유튜브 Shorts 링크 변경
     function openModal(type) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
       if (type === "instructions") {
         modalBody.innerHTML = `
           <iframe width="100%" height="500"
-            src="https://www.youtube.com/embed/U_rn5bleF_k?si=Jbnx8fX9xMX-iP2O"
+            src="https://www.youtube.com/embed/IqBbe-rXkrw"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen>
           </iframe>`;
       } else if (type === "inquiry") {
-        modalBody.innerHTML = '<p style="font-size:1.5rem;">개발중입니다</p>';
+        modalBody.innerHTML = '<p style="font-size:1rem; margin:10px 0; word-break: keep-all;">개발중입니다</p>';
       }
       modal.style.display = "block";
     }
@@ -889,7 +885,6 @@
       }
     });
 
-    // DOMContentLoaded 후 보드 생성
     document.addEventListener("DOMContentLoaded", () => {
       createBoard();
     });
