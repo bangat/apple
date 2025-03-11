@@ -138,12 +138,12 @@
       z-index: 1000;
     }
     .btn-container button {
-      padding: 8px 15px;
-      font-size: 1rem;
+      padding: 6px 12px;
+      font-size: 0.9rem;
       font-weight: bold;
       cursor: pointer;
       border: none;
-      border-radius: 50px;
+      border-radius: 30px;
       color: #fff;
       background: linear-gradient(45deg, #ff7d47, #ff9800);
       transition: all 0.3s ease;
@@ -259,6 +259,17 @@
         opacity: 0;
       }
     }
+
+@media (max-width: 600px) {
+  .btn-container button {
+    width: 45%;
+    font-size: 0.8rem;
+  }
+  
+  .apple span {
+    font-size: 1rem; /* 숫자 크기 자동 조정 */
+  }
+}
   </style>
 </head>
 <body>
