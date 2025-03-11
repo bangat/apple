@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>씹드래그</title>
   <style>
+    /* 기본 리셋 */
     * {
       margin: 0;
       padding: 0;
@@ -42,7 +43,7 @@
     #game-container {
       width: 90%;
       max-width: 1200px;
-      margin: 10px auto 10px auto;
+      margin: 10px auto;
       padding: 10px;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -81,7 +82,6 @@
       transform: scale(1.1);
       box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
     }
-    /* 폭탄 아이콘 */
     .bomb-apple::after {
       content: "💣";
       position: absolute;
@@ -90,7 +90,6 @@
       font-size: 1rem;
       opacity: 0.6;
     }
-    /* 시간 가속 아이콘 */
     .time-accelerator-apple::after {
       content: "⏱";
       position: absolute;
@@ -99,7 +98,7 @@
       font-size: 1rem;
       opacity: 0.8;
     }
-    /* 아이템 칸(작은 막대 형태) */
+    /* 아이템 칸 */
     #inventory-container {
       width: 90%;
       max-width: 1200px;
@@ -107,15 +106,14 @@
       padding: 5px;
       border-radius: 10px;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-      background: #7b1f1f; /* 게임컨테이너와 다르게 단색 or 원하는 색상 */
+      background: #7b1f1f;
       color: white;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 40px; /* 높이를 작게 조정 */
+      min-height: 40px;
       font-size: 1rem;
     }
-    /* 아이템 목록 (인벤토리) */
     #inventory {
       display: flex;
       gap: 8px;
@@ -135,11 +133,11 @@
       font-size: 1.3rem;
       cursor: pointer;
     }
-    /* 하단 버튼 (크기 축소) */
+    /* 하단 버튼 */
     .btn-container {
       background: #7b1f1f;
       color: white;
-      padding: 8px 5px; /* 작게 조정 */
+      padding: 8px 5px;
       font-size: 1.1rem;
       font-weight: bold;
       border-top: 5px solid #5a0d0d;
@@ -153,8 +151,8 @@
       z-index: 1000;
     }
     .btn-container button {
-      padding: 8px 15px; /* 작게 조정 */
-      font-size: 1rem;   /* 버튼 글씨 크기 축소 */
+      padding: 8px 15px;
+      font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
       border: none;
@@ -171,16 +169,20 @@
     .btn-container button:active {
       transform: scale(0.95);
     }
-    /* 게임 시작 오버레이 */
+    /* 게임시작 오버레이 및 추가 버튼 */
     #overlay {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: rgba(0, 0, 0, 0.5);
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 2000;
+      gap: 15px;
     }
     #overlay button {
       padding: 20px 40px;
@@ -199,7 +201,8 @@
     /* 콤보 이펙트 */
     #combo-effect {
       position: fixed;
-      top: 50%; left: 50%;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
       font-size: 3rem;
       color: #ffec00;
@@ -211,8 +214,10 @@
     /* 파티클 컨테이너 */
     #particle-container {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       z-index: 3000;
       overflow: hidden;
@@ -236,6 +241,35 @@
         opacity: 0;
       }
     }
+    /* 모달창 스타일 */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 4000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 800px;
+      position: relative;
+    }
+    .close-btn {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -243,48 +277,43 @@
   <div id="header">
     ⏳남은시간:<span id="timer">180</span>초 | 🎯점수:<span id="score">0</span>점
   </div>
-
   <!-- 게임 컨테이너 -->
   <div id="game-container">
     <div id="game-board"></div>
   </div>
-
-  <!-- 아이템 칸 (작은 막대 형태) -->
+  <!-- 아이템 칸 -->
   <div id="inventory-container">
-    <!-- 아이템이 없으면 내부가 비어 보임 -->
     <div id="inventory"></div>
   </div>
-
   <!-- 하단 버튼 -->
   <div class="btn-container">
     <button id="restart-btn">다시하기</button>
     <button id="regenerate-btn">재생성</button>
   </div>
-
-  <!-- 게임시작 오버레이 -->
+  <!-- 게임시작 오버레이 및 추가 버튼 -->
   <div id="overlay">
     <button id="start-btn">게임시작</button>
+    <button id="instructions-btn">게임방법</button>
+    <button id="inquiry-btn">문의하기</button>
   </div>
-
+  <!-- 모달창 -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <div id="modal-body"></div>
+    </div>
+  </div>
   <!-- 콤보 이펙트 -->
   <div id="combo-effect"></div>
-
-  <!-- 파티클 표시용 컨테이너 -->
+  <!-- 파티클 컨테이너 -->
   <div id="particle-container"></div>
-
   <script>
-    /* 아래는 기본 게임 로직 예시 */
-    /* 행/열, 폭탄/시간가속 확률, 콤보 등 자유롭게 조정하세요 */
-
     const ROWS = 14, COLS = 10;
     const boardSize = ROWS * COLS;
-
-    // 확률/최대개수
     const bombChance = 0.1;
     const timeAccelChance = 0.1;
     const bombMaxCount = 2;
     const timeAccelMaxCount = 2;
-
     let selectedApples = [];
     let score = 0;
     let timer = 180;
@@ -292,19 +321,15 @@
     let gameActive = false;
     let vibratedApples = new Set();
     let timerSpeed = 1;
-
-    // 콤보 관련
     let comboCount = 0;
     let lastComboTime = 0;
-
-    // 사운드 URL (원하는 파일로 교체)
     const removeSound = new Audio('https://example.com/remove.mp3');
     const bombSound   = new Audio('https://example.com/bomb.mp3');
     const accelSound  = new Audio('https://example.com/accelerate.mp3');
     const comboSound  = new Audio('https://example.com/combo.mp3');
     const timeBonusSound = new Audio('https://example.com/timebonus.mp3');
     const defaultSound = new Audio('https://blog.kakaocdn.net/dn/QS2Yf/btsjas57Dvt/hlplcZYpNsYAeExA2tHZi0/tfile.mp3');
-
+    
     function generateNumbers() {
       let numbers = [];
       for (let i = 0; i < boardSize / 2; i++) {
@@ -314,7 +339,7 @@
       }
       return numbers.sort(() => Math.random() - 0.5);
     }
-
+    
     function spawnParticles(x, y, color = 'yellow', count = 15) {
       const container = document.getElementById("particle-container");
       for (let i = 0; i < count; i++) {
@@ -333,7 +358,7 @@
         }, 1000);
       }
     }
-
+    
     function createBoard() {
       document.getElementById("score").textContent = "0";
       score = 0;
@@ -341,28 +366,20 @@
       document.getElementById("timer").textContent = "180";
       comboCount = 0;
       lastComboTime = 0;
-
-      // 아이템 칸 초기화
       document.getElementById("inventory").innerHTML = "";
-
       let bombCount = 0;
       let timeAccelCount = 0;
-
       const board = document.getElementById("game-board");
       board.innerHTML = "";
       const numbers = generateNumbers();
-
       numbers.forEach((num, index) => {
         const apple = document.createElement("div");
         apple.classList.add("apple");
         apple.textContent = num;
         apple.dataset.index = index;
-
         apple.addEventListener("touchstart", startSelection);
         apple.addEventListener("touchmove", selectApple);
         apple.addEventListener("touchend", endSelection);
-
-        // 폭탄/시간가속 아이템 배치
         if (bombCount < bombMaxCount && Math.random() < bombChance) {
           apple.classList.add("bomb-apple");
           bombCount++;
@@ -373,13 +390,13 @@
         board.appendChild(apple);
       });
     }
-
+    
     function startGame() {
       gameActive = true;
       document.getElementById("game-container").style.filter = "none";
       startTimer();
     }
-
+    
     function startTimer() {
       clearInterval(timerInterval);
       timer = 180;
@@ -397,7 +414,7 @@
         }
       }, 1000);
     }
-
+    
     function startSelection(event) {
       if (!gameActive) return;
       event.preventDefault();
@@ -405,14 +422,14 @@
       vibratedApples.clear();
       selectApple(event);
     }
-
+    
     function triggerVibration(index) {
       if (!vibratedApples.has(index)) {
         vibratedApples.add(index);
         if (navigator.vibrate) navigator.vibrate(50);
       }
     }
-
+    
     function selectApple(event) {
       event.preventDefault();
       const touch = event.touches ? event.touches[0] : event;
@@ -424,23 +441,20 @@
         triggerVibration(apple.dataset.index);
       }
     }
-
+    
     function endSelection() {
       document.removeEventListener("pointermove", selectApple);
       document.removeEventListener("pointerup", endSelection);
       document.removeEventListener("touchmove", selectApple);
       document.removeEventListener("touchend", endSelection);
-
       const sum = selectedApples.reduce((acc, apple) => acc + parseInt(apple.textContent, 10), 0);
       if (sum === 10) {
-        // 파티클
         if (selectedApples.length > 0) {
           const rect = selectedApples[0].getBoundingClientRect();
           const cx = rect.left + rect.width / 2;
           const cy = rect.top + rect.height / 2;
           spawnParticles(cx, cy, '#ffcc00', 20);
         }
-        // 아이템 효과
         selectedApples.forEach(apple => {
           if (apple.classList.contains("bomb-apple")) {
             bombEffect(apple);
@@ -449,15 +463,12 @@
             timeAcceleratorEffect();
           }
         });
-        // 제거
         selectedApples.forEach(apple => {
           apple.style.opacity = "0";
           apple.style.pointerEvents = "none";
         });
         score += selectedApples.length * 2;
         document.getElementById("score").textContent = score;
-
-        // 사운드
         if (removeSound) {
           removeSound.play().catch(() => defaultSound.play());
         } else {
@@ -467,7 +478,7 @@
       }
       selectedApples.forEach(apple => apple.classList.remove("selected"));
     }
-
+    
     function bombEffect(apple) {
       const index = parseInt(apple.dataset.index, 10);
       const row = Math.floor(index / 10);
@@ -476,13 +487,11 @@
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
       spawnParticles(cx, cy, 'red', 30);
-
       if (bombSound) {
         bombSound.play().catch(() => defaultSound.play());
       } else {
         defaultSound.play();
       }
-
       const board = document.getElementById("game-board");
       const allApples = board.getElementsByClassName("apple");
       Array.from(allApples).forEach(a => {
@@ -497,7 +506,7 @@
       score += 10;
       document.getElementById("score").textContent = score;
     }
-
+    
     function timeAcceleratorEffect() {
       if (accelSound) {
         accelSound.play().catch(() => defaultSound.play());
@@ -507,7 +516,7 @@
         timerSpeed = 1;
       }, 5000);
     }
-
+    
     function handleCombo() {
       const now = Date.now();
       if (now - lastComboTime <= 4000) {
@@ -516,20 +525,18 @@
         comboCount = 1;
       }
       lastComboTime = now;
-
       if (comboSound) {
         comboSound.play().catch(() => defaultSound.play());
       }
       showComboEffect("COMBO x" + comboCount + "!", 2000);
       score += comboCount * 5;
       document.getElementById("score").textContent = score;
-
       if (comboCount >= 3) {
         addInventoryItem("timeBonus");
         comboCount = 0;
       }
     }
-
+    
     function showComboEffect(text, duration = 2000) {
       const comboDiv = document.getElementById("combo-effect");
       comboDiv.textContent = text;
@@ -546,7 +553,7 @@
         comboDiv.style.transition = "none";
       }, duration);
     }
-
+    
     function addInventoryItem(type) {
       const inventoryDiv = document.getElementById("inventory");
       const itemDiv = document.createElement("div");
@@ -560,7 +567,7 @@
       });
       inventoryDiv.appendChild(itemDiv);
     }
-
+    
     function useInventoryItem(itemElement) {
       const type = itemElement.dataset.type;
       if (type === "timeBonus") {
@@ -574,7 +581,7 @@
       }
       itemElement.remove();
     }
-
+    
     function hasValidCombination(numbers) {
       const n = numbers.length;
       const memo = {};
@@ -596,7 +603,7 @@
       }
       return helper(0, 0, 0);
     }
-
+    
     function regenerateBoard() {
       const board = document.getElementById("game-board");
       let remainingApples = Array.from(board.getElementsByClassName("apple"))
@@ -625,20 +632,57 @@
         alert("재생성 완료! 10을 만들 수 있는 조합이 추가되었습니다.");
       }
     }
-
-    // 이벤트 리스너
+    
+    // 이벤트 리스너 등록
     document.getElementById("start-btn").addEventListener("click", () => {
       document.getElementById("overlay").style.display = "none";
       startGame();
     });
+    
     document.getElementById("restart-btn").addEventListener("click", () => {
       createBoard();
       startGame();
     });
+    
     document.getElementById("regenerate-btn").addEventListener("click", () => {
       regenerateBoard();
     });
-
+    
+    // 모달창 관련 이벤트 처리
+    document.getElementById("instructions-btn").addEventListener("click", () => {
+      openModal("instructions");
+    });
+    
+    document.getElementById("inquiry-btn").addEventListener("click", () => {
+      openModal("inquiry");
+    });
+    
+    function openModal(type) {
+      const modal = document.getElementById("modal");
+      const modalBody = document.getElementById("modal-body");
+      if (type === "instructions") {
+        modalBody.innerHTML = `
+          <iframe width="100%" height="500" src="https://www.youtube.com/embed/U_rn5bleF_k?si=Jbnx8fX9xMX-iP2O" 
+          frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen></iframe>
+        `;
+      } else if (type === "inquiry") {
+        modalBody.innerHTML = `<p style="font-size:1.5rem;">개발중입니다</p>`;
+      }
+      modal.style.display = "block";
+    }
+    
+    document.querySelector(".close-btn").addEventListener("click", () => {
+      document.getElementById("modal").style.display = "none";
+    });
+    
+    window.addEventListener("click", (event) => {
+      const modal = document.getElementById("modal");
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+    
     document.addEventListener("DOMContentLoaded", () => {
       createBoard();
     });
