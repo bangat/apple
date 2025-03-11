@@ -6,281 +6,301 @@
   <title>씹드래그</title>
   <style>
     /* 기본 리셋 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  background: #fff; /* 전체 배경 흰색 */
-  font-family: Arial, sans-serif;
-  text-align: center;
-  min-height: 100vh;
-  /* iOS 호환 불필요: overflow: hidden 가능 */
-  overflow: hidden;
-  touch-action: none;
-  position: relative;
-}
-/* 헤더 */
-#header {
-  background: #f5f5f5; /* 밝은 회색 */
-  color: #333;
-  padding: 12px 5px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  border-bottom: 1px solid #ddd;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  /* 수정: 한 줄로 유지하기 위해 flex-wrap을 nowrap으로 변경 */
-  flex-wrap: nowrap;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #fff; /* 전체 배경 흰색 */
+      font-family: Arial, sans-serif;
+      text-align: center;
+      min-height: 100vh;
+      overflow: hidden;
+      touch-action: none;
+      position: relative;
+    }
+    /* 헤더 */
+    #header {
+      background: #f5f5f5; /* 밝은 회색 */
+      color: #333;
+      padding: 12px 5px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-bottom: 1px solid #ddd;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      /* 한 줄로 유지하기 위해 nowrap 적용 */
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+    #timer, #score {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ff5722; /* 포인트 색상(오렌지) */
+    }
 
-  /* 혹은 아래처럼 스크롤이 필요하다면 추가할 수 있음
-     white-space: nowrap;
-     overflow-x: auto;
-  */
-}
-#timer, #score {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #ff5722; /* 포인트 색상(오렌지) */
-}
-/* 아이템 컨테이너 */
-#inventory-container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 10px auto;
-  padding: 5px;
-  border-radius: 10px;
-  border: none;
-  box-shadow: none;
-  background: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 25px;
-  font-size: 1rem;
-  color: #333;
-}
-#inventory {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.item {
-  width: 25px;
-  height: 25px;
-  background: rgba(0,0,0,0.05);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #333;
-  font-size: 1.3rem;
-  cursor: pointer;
-}
-/* 게임 컨테이너 */
-#game-container {
-  width: 90%;
-  max-width: 1200px;
-  margin: 10px auto;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  background: #fff;
-  position: relative;
-}
-/* 게임보드 */
-#game-board {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 5px;
-  width: 100%;
-  padding: 10px 0;
-}
-/* 사과 */
-.apple {
-  aspect-ratio: 1; /* 아이폰 호환 X, 그냥 aspect-ratio로 정사각형 */
-  border-radius: 50%;
-  user-select: none;
-  transition: opacity 0.5s;
-  opacity: 1;
-  position: relative;
-  overflow: hidden;
-}
-.apple span {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(1rem, 2.5vw, 2rem);
-  color: #333;
-}
-.selected {
-  background: yellow !important;
-  color: black;
-  transform: scale(1.1);
-  box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
-}
-/* 하단 버튼 컨테이너 */
-.btn-container {
-  background: #f5f5f5;
-  color: #333;
-  padding: 10px 5px;
-  font-size: 1.1rem;
-  border-top: 1px solid #ddd;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-}
-.btn-container button {
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  cursor: pointer;
-  border: none;
-  border-radius: 30px;
-  color: #fff;
-  background: linear-gradient(45deg, #ff7d47, #ff9800);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-.btn-container button:hover {
-  background: linear-gradient(45deg, #ff5722, #ff9100);
-  transform: scale(1.05);
-}
-.btn-container button:active {
-  transform: scale(0.95);
-}
-/* 오버레이 (게임시작 화면) */
-#overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-  gap: 15px;
-}
-#overlay button {
-  padding: 20px 40px;
-  font-size: 2rem;
-  background: #ff5722;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  transition: transform 0.3s ease;
-}
-#overlay button:hover {
-  transform: scale(1.1);
-}
-/* 모달창 (고급 팝업) */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 4000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0,0,0,0.5);
-}
-.modal-content {
-  background-color: #fff;
-  margin: 10% auto;
-  padding: 20px;
-  border-radius: 10px;
-  width: 80%;
-  max-width: 600px;
-  position: relative;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-.close-btn {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-}
-/* 콤보 이펙트 - 수정된 부분: 화면 상단 중앙에 배치, z-index 낮춤 */
-#combo-effect {
-  position: fixed;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 2rem;
-  color: #ffec00;
-  text-shadow: 2px 2px 4px #000;
-  pointer-events: none;
-  opacity: 0;
-  z-index: 2000;
-  white-space: nowrap;
-}
-/* 파티클 컨테이너 */
-#particle-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 3000;
-  overflow: hidden;
-}
-.particle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: yellow;
-  opacity: 0.9;
-  animation: particle-move 1s forwards;
-}
-@keyframes particle-move {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--dx), var(--dy)) scale(0.5);
-    opacity: 0;
-  }
-}
+    /* 아이템 컨테이너 */
+    #inventory-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 10px auto;
+      padding: 5px;
+      border-radius: 10px;
+      background: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 25px;
+      font-size: 1rem;
+      color: #333;
+    }
+    #inventory {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .item {
+      width: 25px;
+      height: 25px;
+      background: rgba(0,0,0,0.05);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
 
-@media (max-width: 600px) {
-  .btn-container button {
-    width: 45%;
-    font-size: 0.8rem;
-  }
-  .apple span {
-    font-size: 1rem; /* 숫자 크기 자동 조정 */
-  }
-}
+    /* 게임 컨테이너 */
+    #game-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: #fff;
+      position: relative;
+    }
+
+    /* 스테이지 표시 박스 */
+    #stage-indicator {
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, #ffe0cc, #ffd1dc);
+      color: #ff5722;
+      font-size: 1.3rem;
+      font-weight: bold;
+      padding: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+    }
+
+    /* 게임보드 */
+    #game-board {
+      display: grid;
+      gap: 5px;
+      width: 100%;
+      padding: 10px 0;
+    }
+    /* 사과 */
+    .apple {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      user-select: none;
+      transition: opacity 0.5s;
+      opacity: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .apple span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(1rem, 2.5vw, 2rem);
+      color: #333;
+    }
+    .selected {
+      background: yellow !important;
+      color: black;
+      transform: scale(1.1);
+      box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
+    }
+    /* 빈칸 (보드 크기가 홀수일 경우) */
+    .blank {
+      pointer-events: none;
+      background: transparent;
+    }
+
+    /* 하단 버튼 컨테이너 */
+    .btn-container {
+      background: #f5f5f5;
+      color: #333;
+      padding: 10px 5px;
+      font-size: 1.1rem;
+      border-top: 1px solid #ddd;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+    .btn-container button {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      border-radius: 30px;
+      color: #fff;
+      background: linear-gradient(45deg, #ff7d47, #ff9800);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .btn-container button:hover {
+      background: linear-gradient(45deg, #ff5722, #ff9100);
+      transform: scale(1.05);
+    }
+    .btn-container button:active {
+      transform: scale(0.95);
+    }
+
+    /* 오버레이 (게임시작 및 스테이지 클리어 모달) */
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      gap: 15px;
+    }
+    #overlay button {
+      padding: 20px 40px;
+      font-size: 2rem;
+      background: #ff5722;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+    }
+    #overlay button:hover {
+      transform: scale(1.1);
+    }
+
+    /* 모달창 (고급 팝업) */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 4000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 600px;
+      position: relative;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    .close-btn {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* 콤보 이펙트 */
+    #combo-effect {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2rem;
+      color: #ffec00;
+      text-shadow: 2px 2px 4px #000;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 2000;
+      white-space: nowrap;
+    }
+
+    /* 파티클 컨테이너 */
+    #particle-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 3000;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: yellow;
+      opacity: 0.9;
+      animation: particle-move 1s forwards;
+    }
+    @keyframes particle-move {
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(var(--dx), var(--dy)) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    /* 반응형 */
+    @media (max-width: 600px) {
+      .btn-container button {
+        width: 45%;
+        font-size: 0.8rem;
+      }
+      .apple span {
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
   <!-- 헤더 -->
   <div id="header">
-    ⏳남은시간:<span id="timer">180</span>초 | 🎯점수:<span id="score">0</span>점
+    ⏳남은시간:<span id="timer">180</span>초 🎯점수:<span id="score">0</span>점
   </div>
 
   <!-- 아이템 컨테이너 (상단) -->
@@ -290,6 +310,12 @@ body {
 
   <!-- 게임 컨테이너 -->
   <div id="game-container">
+    <!-- 새로 추가된 스테이지 표시 박스 -->
+    <div id="stage-indicator">
+      스테이지 <span id="stage">1/5</span>
+    </div>
+
+    <!-- 실제 게임보드 -->
     <div id="game-board"></div>
   </div>
 
@@ -299,7 +325,7 @@ body {
     <button id="regenerate-btn">재생성</button>
   </div>
 
-  <!-- 게임시작 오버레이 -->
+  <!-- 게임시작/스테이지 클리어 오버레이 -->
   <div id="overlay">
     <button id="start-btn">게임시작</button>
     <button id="instructions-btn">게임방법</button>
@@ -321,8 +347,17 @@ body {
   <div id="particle-container"></div>
 
   <script>
-    const ROWS = 14, COLS = 10;
-    const boardSize = ROWS * COLS;
+    // 스테이지별 보드 크기 설정
+    const stageSizes = [
+      { rows: 5, cols: 7 },
+      { rows: 7, cols: 9 },
+      { rows: 8, cols: 10 },
+      { rows: 10, cols: 12 },
+      { rows: 10, cols: 14 }
+    ];
+    let currentStage = 0;
+
+    let boardSize;  // 현재 스테이지의 총 셀 개수 (빈칸 포함)
     let selectedApples = [];
     let score = 0;
     let timer = 180;
@@ -339,7 +374,6 @@ body {
     const defaultSound = new Audio('https://blog.kakaocdn.net/dn/kPq6B/btsMHdSCEoa/id4EBuKeTLDdF6iJwxhKZ0/0279-%EB%A7%88%EC%9A%B0%EC%8A%A4%20%ED%81%B4%EB%A6%AD%EC%9D%8C.mp3?attach=1&knm=tfile.mp3');
     const comboSound  = new Audio('https://example.com/combo.mp3');
     const timeBonusSound = new Audio('https://example.com/timebonus.mp3');
-
     const bombSound = new Audio('https://blog.kakaocdn.net/dn/b0u9H8/btsMHlJab5C/0DDSjFqvbgAl9Sk2bswbVk/%ED%8F%AD%ED%83%84%EC%A0%9C%EA%B1%B0.mp3?attach=1&knm=tfile.mp3');
     const speedSound = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3?attach=1&knm=tfile.mp3');
     const resetSound = new Audio('https://blog.kakaocdn.net/dn/buWEEK/btsxgqy6xx4/SK8cujLMM7t2nn0xutkhqK/%ED%85%8C%EC%9E%8E%EB%90%98%EA%B0%90%EA%B8%B0%EC%86%8C%EB%A6%AC.mp3?attach=1&knm=tfile.mp3');
@@ -356,7 +390,20 @@ body {
       modal.style.display = "block";
     }
 
-    // 콤보 이펙트 표시 함수 추가
+    // 스테이지 클리어 모달 (스테이지 완료 후 표시)
+    function showStageClearModal(message) {
+      const modal = document.getElementById("modal");
+      const modalBody = document.getElementById("modal-body");
+      modalBody.innerHTML = `<p style="font-size:1.5rem; margin: 20px 0;">${message}</p>
+                             <button id="next-stage-btn" style="padding:10px 20px; font-size:1rem; border:none; border-radius:5px; background:#ff7d47; color:#fff; cursor:pointer;">다음 스테이지</button>`;
+      modal.style.display = "block";
+      document.getElementById("next-stage-btn").addEventListener("click", () => {
+        modal.style.display = "none";
+        nextStage();
+      });
+    }
+
+    // 콤보 이펙트 표시 함수
     function showComboEffect(message, duration) {
       const comboElement = document.getElementById("combo-effect");
       comboElement.textContent = message;
@@ -366,10 +413,10 @@ body {
       }, duration);
     }
 
-    // 난수 생성
-    function generateNumbers() {
+    // 난수 생성 (count: 생성할 사과 개수; 항상 짝수여야 함)
+    function generateNumbers(count) {
       let numbers = [];
-      for (let i = 0; i < boardSize / 2; i++) {
+      for (let i = 0; i < count / 2; i++) {
         let num1 = Math.floor(Math.random() * 9) + 1;
         let num2 = 10 - num1;
         numbers.push(num1, num2);
@@ -397,38 +444,56 @@ body {
       }
     }
 
-    // 보드 생성
+    // 보드 생성 (현재 스테이지에 맞게)
     function createBoard() {
-      document.getElementById("score").textContent = "0";
-      score = 0;
+      document.getElementById("score").textContent = score;
       gameActive = false;
-      document.getElementById("timer").textContent = "180";
+      timer = 180;
+      document.getElementById("timer").textContent = timer;
       comboCount = 0;
       lastComboTime = 0;
       document.getElementById("inventory").innerHTML = "";
       const board = document.getElementById("game-board");
       board.innerHTML = "";
 
-      const numbers = generateNumbers();
-      numbers.forEach((num, index) => {
+      // 현재 스테이지의 행, 열 설정
+      const stage = stageSizes[currentStage];
+      const rows = stage.rows;
+      const cols = stage.cols;
+      board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      boardSize = rows * cols;
+
+      let appleCount = boardSize;
+      let hasBlank = false;
+      // 보드 총 셀 수가 홀수이면 마지막 한 칸은 빈칸 처리
+      if(boardSize % 2 !== 0) {
+        appleCount = boardSize - 1;
+        hasBlank = true;
+      }
+      const numbers = generateNumbers(appleCount);
+
+      // 사과 생성
+      for(let i = 0; i < appleCount; i++){
         const apple = document.createElement("div");
         apple.classList.add("apple");
-        apple.dataset.index = index;
-
-        // 파스텔 배경
+        apple.dataset.index = i;
+        // 파스텔 배경 색상
         const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
         apple.style.background = randomColor;
-
-        // 내부 span
         const appleSpan = document.createElement("span");
-        appleSpan.textContent = num;
+        appleSpan.textContent = numbers[i];
         apple.appendChild(appleSpan);
-
-        // 드래그를 위해 touchstart 이벤트 등록
         apple.addEventListener("touchstart", startSelection);
-
         board.appendChild(apple);
-      });
+      }
+      // 빈칸 추가 (홀수일 경우)
+      if(hasBlank) {
+        const blankDiv = document.createElement("div");
+        blankDiv.classList.add("blank");
+        board.appendChild(blankDiv);
+      }
+      // 스테이지 UI 업데이트
+      document.getElementById("stage").textContent = (currentStage + 1) + "/" + stageSizes.length;
     }
 
     // 게임 시작
@@ -464,8 +529,6 @@ body {
       selectedApples = [];
       vibratedApples.clear();
       selectApple(event);
-
-      // 전역으로 touchmove, touchend 이벤트 등록
       document.addEventListener("touchmove", selectApple);
       document.addEventListener("touchend", endSelection);
     }
@@ -494,12 +557,11 @@ body {
     function endSelection() {
       document.removeEventListener("touchmove", selectApple);
       document.removeEventListener("touchend", endSelection);
-
       const sum = selectedApples.reduce(
         (acc, apple) => acc + parseInt(apple.querySelector("span").textContent, 10),
         0
       );
-      if (sum === 10) {
+      if (sum === 10 && selectedApples.length >= 2) {
         if (selectedApples.length > 0) {
           const rect = selectedApples[0].getBoundingClientRect();
           const cx = rect.left + rect.width / 2;
@@ -520,6 +582,7 @@ body {
         handleCombo();
       }
       selectedApples.forEach(apple => apple.classList.remove("selected"));
+      checkStageClear();
     }
 
     // 콤보 처리
@@ -602,62 +665,73 @@ body {
     }
 
     function bombTargetSelection(event) {
-  const board = document.getElementById("game-board");
-  board.style.cursor = "default";
-  let apple = event.target;
-  if (!apple.classList.contains("apple")) {
-    showComboEffect("사과를 선택하세요!", 1500);
-    return;
-  }
-
-  // 사용자가 사과를 클릭하는 순간 폭탄 효과음 재생
-  bombSound.play().catch(() => defaultSound.play());
-
-  const index = parseInt(apple.dataset.index, 10);
-  const row = Math.floor(index / COLS);
-  const col = index % COLS;
-  const rect = apple.getBoundingClientRect();
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  spawnParticles(cx, cy, 'red', 30);
-
-  const allApples = document.querySelectorAll("#game-board .apple");
-  allApples.forEach(a => {
-    const i = parseInt(a.dataset.index, 10);
-    const r = Math.floor(i / COLS);
-    const c = i % COLS;
-    if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
-      a.style.opacity = "0";
-      a.style.pointerEvents = "none";
+      const board = document.getElementById("game-board");
+      board.style.cursor = "default";
+      let apple = event.target;
+      if (!apple.classList.contains("apple")) {
+        showComboEffect("사과를 선택하세요!", 1500);
+        return;
+      }
+      bombSound.play().catch(() => defaultSound.play());
+      const index = parseInt(apple.dataset.index, 10);
+      const stage = stageSizes[currentStage];
+      const cols = stage.cols;
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      const rect = apple.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      spawnParticles(cx, cy, 'red', 30);
+      const allApples = document.querySelectorAll("#game-board .apple");
+      allApples.forEach(a => {
+        const i = parseInt(a.dataset.index, 10);
+        const r = Math.floor(i / cols);
+        const c = i % cols;
+        if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
+          a.style.opacity = "0";
+          a.style.pointerEvents = "none";
+        }
+      });
+      score += 10;
+      document.getElementById("score").textContent = score;
+      board.removeEventListener("click", bombTargetSelection);
+      gameActive = true;
+      checkStageClear();
     }
-  });
-
-  score += 10;
-  document.getElementById("score").textContent = score;
-  board.removeEventListener("click", bombTargetSelection);
-  gameActive = true;
-}
 
     // 사과 리셋
     function resetApplesOnBoard() {
       const board = document.getElementById("game-board");
       board.innerHTML = "";
-      const numbers = generateNumbers();
-      numbers.forEach((num, index) => {
+      const stage = stageSizes[currentStage];
+      const rows = stage.rows;
+      const cols = stage.cols;
+      board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      boardSize = rows * cols;
+      let appleCount = boardSize;
+      let hasBlank = false;
+      if(boardSize % 2 !== 0) {
+        appleCount = boardSize - 1;
+        hasBlank = true;
+      }
+      const numbers = generateNumbers(appleCount);
+      for(let i = 0; i < appleCount; i++){
         const apple = document.createElement("div");
         apple.classList.add("apple");
-        apple.dataset.index = index;
-
+        apple.dataset.index = i;
         const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
         apple.style.background = randomColor;
-
         const appleSpan = document.createElement("span");
-        appleSpan.textContent = num;
+        appleSpan.textContent = numbers[i];
         apple.appendChild(appleSpan);
-
         apple.addEventListener("touchstart", startSelection);
         board.appendChild(apple);
-      });
+      }
+      if(hasBlank) {
+        const blankDiv = document.createElement("div");
+        blankDiv.classList.add("blank");
+        board.appendChild(blankDiv);
+      }
     }
 
     // 타이머 일시정지
@@ -673,8 +747,6 @@ body {
       const board = document.getElementById("game-board");
       let remainingApples = Array.from(board.getElementsByClassName("apple"))
         .filter(apple => apple.style.opacity !== "0" && apple.style.pointerEvents !== "none");
-
-      // 남은 사과가 1개 이하 -> 사과 2개 생성
       if (remainingApples.length <= 1) {
         for (let i = 0; i < 2; i++) {
           const newApple = document.createElement("div");
@@ -686,15 +758,12 @@ body {
           const newSpan = document.createElement("span");
           newSpan.textContent = randNum;
           newApple.appendChild(newSpan);
-
           newApple.addEventListener("touchstart", startSelection);
           board.appendChild(newApple);
         }
         showModalMessage("사과가 1개 이하라서 2개를 새로 생성했습니다!");
         return;
       }
-
-      // 2개 이상인 경우 기존 로직
       let numbers = remainingApples.map(apple => Number(apple.querySelector("span").textContent));
       if (hasValidCombination(numbers)) {
         showModalMessage("아직 10을 만들 수 있는 조합이 남아있습니다!");
@@ -740,19 +809,52 @@ body {
       return helper(0, 0, 0);
     }
 
+    // 스테이지 클리어 체크 (모든 사과가 제거되었으면)
+    function checkStageClear() {
+      const activeApples = Array.from(document.querySelectorAll("#game-board .apple"))
+        .filter(apple => apple.style.opacity !== "0" && apple.style.pointerEvents !== "none");
+      if (activeApples.length === 0) {
+        stageClear();
+      }
+    }
+
+    // 스테이지 클리어 처리
+    function stageClear() {
+      clearInterval(timerInterval);
+      // 마지막 스테이지가 아니라면
+      if(currentStage < stageSizes.length - 1) {
+        showStageClearModal(`스테이지 ${currentStage + 1} 클리어!`);
+      } else {
+        showModalMessage(`최종 스테이지 클리어! 최종 점수: ${score}`);
+      }
+      gameActive = false;
+    }
+
+    // 다음 스테이지 진행
+    function nextStage() {
+      currentStage++;
+      createBoard();
+      startTimer();
+      gameActive = true;
+    }
+
     // 모달창 관련
     document.getElementById("start-btn").addEventListener("click", () => {
       document.getElementById("overlay").style.display = "none";
+      currentStage = 0;
+      score = 0;
+      createBoard();
       startGame();
     });
     document.getElementById("restart-btn").addEventListener("click", () => {
+      currentStage = 0;
+      score = 0;
       createBoard();
       startGame();
     });
     document.getElementById("regenerate-btn").addEventListener("click", () => {
       regenerateBoard();
     });
-
     document.getElementById("instructions-btn").addEventListener("click", () => {
       openModal("instructions");
     });
@@ -787,6 +889,7 @@ body {
       }
     });
 
+    // DOMContentLoaded 후 보드 생성
     document.addEventListener("DOMContentLoaded", () => {
       createBoard();
     });
