@@ -47,7 +47,6 @@
       margin: 10px auto;
       padding: 5px;
       border-radius: 10px;
-      /* 테두리/그림자 제거하여 배경과 통일감 */
       border: none;
       box-shadow: none;
       background: none;
@@ -216,18 +215,18 @@
       font-weight: bold;
       cursor: pointer;
     }
-    /* 콤보 이펙트 */
+    /* 콤보 이펙트 - 수정된 부분: 화면 상단 중앙에 배치, z-index 낮춤 */
     #combo-effect {
       position: fixed;
-      top: 50%;
+      top: 10%;
       left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 3rem;
+      transform: translateX(-50%);
+      font-size: 2rem;
       color: #ffec00;
       text-shadow: 2px 2px 4px #000;
       pointer-events: none;
       opacity: 0;
-      z-index: 3000;
+      z-index: 2000;
       white-space: nowrap;
     }
     /* 파티클 컨테이너 */
@@ -341,6 +340,16 @@
       modal.style.display = "block";
     }
 
+    // 콤보 이펙트 표시 함수 추가
+    function showComboEffect(message, duration) {
+      const comboElement = document.getElementById("combo-effect");
+      comboElement.textContent = message;
+      comboElement.style.opacity = "1";
+      setTimeout(() => {
+        comboElement.style.opacity = "0";
+      }, duration);
+    }
+
     // 난수 생성
     function generateNumbers() {
       let numbers = [];
@@ -352,7 +361,7 @@
       return numbers.sort(() => Math.random() - 0.5);
     }
 
-    // 파티클
+    // 파티클 생성
     function spawnParticles(x, y, color = 'yellow', count = 15) {
       const container = document.getElementById("particle-container");
       for (let i = 0; i < count; i++) {
@@ -399,7 +408,7 @@
         appleSpan.textContent = num;
         apple.appendChild(appleSpan);
 
-        // 드래그를 위해 touchstart만 apple에 등록
+        // 드래그를 위해 touchstart 이벤트 등록
         apple.addEventListener("touchstart", startSelection);
 
         board.appendChild(apple);
@@ -413,7 +422,7 @@
       startTimer();
     }
 
-    // 타이머
+    // 타이머 시작
     function startTimer() {
       clearInterval(timerInterval);
       timer = 180;
@@ -440,7 +449,7 @@
       vibratedApples.clear();
       selectApple(event);
 
-      // 전역으로 touchmove, touchend 등록
+      // 전역으로 touchmove, touchend 이벤트 등록
       document.addEventListener("touchmove", selectApple);
       document.addEventListener("touchend", endSelection);
     }
@@ -452,7 +461,7 @@
       }
     }
 
-    // 드래그 중
+    // 드래그 중 사과 선택
     function selectApple(event) {
       event.preventDefault();
       const touch = event.touches ? event.touches[0] : event;
@@ -465,7 +474,7 @@
       }
     }
 
-    // 드래그 끝
+    // 드래그 종료 후 처리
     function endSelection() {
       document.removeEventListener("touchmove", selectApple);
       document.removeEventListener("touchend", endSelection);
