@@ -805,7 +805,7 @@
       }
       let numbers = remainingApples.map(apple => Number(apple.querySelector("span").textContent));
       if (hasValidCombination(numbers)) {
-        showBottomModalMessage("아직 10을 만들 수 있는 조합이 남아있습니다!");
+        showBottomModalMessage("10을 만들 수 있는 조합이 남아있습니다!");
         setTimeout(() => {
           document.getElementById("modal").style.display = "none";
         }, 1500);
