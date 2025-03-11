@@ -561,23 +561,23 @@
         let effectMessage = "";
         switch(randomEffect) {
           case 0:
-            effectMessage = "3x3 BOOM!";
+            effectMessage = "3x3 BOOM💣";
             bombSound.play().catch(() => defaultSound.play());
             applyBombEffect();
             break;
           case 1:
-            effectMessage = "2배속 시간흐름!";
+            effectMessage = "시간흐름 2배속";
             speedSound.play().catch(() => defaultSound.play());
             timerSpeed = 2;
             setTimeout(() => { timerSpeed = 1; }, 10000);
             break;
           case 2:
-            effectMessage = "사과 초기화!";
+            effectMessage = "사과 초기화💢";
             resetSound.play().catch(() => defaultSound.play());
             resetApplesOnBoard();
             break;
           case 3:
-            effectMessage = "10초 시간정지!";
+            effectMessage = "10초 시간정지";
             freezeSound.play().catch(() => defaultSound.play());
             pauseTimerForSeconds(10);
             break;
@@ -597,35 +597,41 @@
     }
 
     function bombTargetSelection(event) {
-      const board = document.getElementById("game-board");
-      board.style.cursor = "default";
-      let apple = event.target;
-      if (!apple.classList.contains("apple")) {
-        showComboEffect("사과를 선택하세요!", 1500);
-        return;
-      }
-      const index = parseInt(apple.dataset.index, 10);
-      const row = Math.floor(index / COLS);
-      const col = index % COLS;
-      const rect = apple.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      spawnParticles(cx, cy, 'red', 30);
-      const allApples = document.querySelectorAll("#game-board .apple");
-      allApples.forEach(a => {
-        const i = parseInt(a.dataset.index, 10);
-        const r = Math.floor(i / COLS);
-        const c = i % COLS;
-        if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
-          a.style.opacity = "0";
-          a.style.pointerEvents = "none";
-        }
-      });
-      score += 10;
-      document.getElementById("score").textContent = score;
-      board.removeEventListener("click", bombTargetSelection);
-      gameActive = true;
+  const board = document.getElementById("game-board");
+  board.style.cursor = "default";
+  let apple = event.target;
+  if (!apple.classList.contains("apple")) {
+    showComboEffect("사과를 선택하세요!", 1500);
+    return;
+  }
+
+  // 사용자가 사과를 클릭하는 순간 폭탄 효과음 재생
+  bombSound.play().catch(() => defaultSound.play());
+
+  const index = parseInt(apple.dataset.index, 10);
+  const row = Math.floor(index / COLS);
+  const col = index % COLS;
+  const rect = apple.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  spawnParticles(cx, cy, 'red', 30);
+
+  const allApples = document.querySelectorAll("#game-board .apple");
+  allApples.forEach(a => {
+    const i = parseInt(a.dataset.index, 10);
+    const r = Math.floor(i / COLS);
+    const c = i % COLS;
+    if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
+      a.style.opacity = "0";
+      a.style.pointerEvents = "none";
     }
+  });
+
+  score += 10;
+  document.getElementById("score").textContent = score;
+  board.removeEventListener("click", bombTargetSelection);
+  gameActive = true;
+}
 
     // 사과 리셋
     function resetApplesOnBoard() {
