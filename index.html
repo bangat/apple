@@ -16,7 +16,7 @@
       background: #aa2f2f;
       text-align: center;
       min-height: 100vh;
-      overflow: hidden; /* 필요 시 auto로 변경 */
+      overflow: hidden;
       touch-action: none;
       position: relative;
     }
@@ -39,7 +39,42 @@
       font-weight: bold;
       color: yellow;
     }
-    /* 게임 컨테이너 */
+    /* 아이템 칸 (상단 배치) */
+    #inventory-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 10px auto;
+      padding: 5px;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      background: #7b1f1f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 40px;
+      font-size: 1rem;
+    }
+    #inventory {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .item {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+    /* 게임 컨테이너 (하단 배치) */
     #game-container {
       width: 90%;
       max-width: 1200px;
@@ -81,57 +116,6 @@
       color: black;
       transform: scale(1.1);
       box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
-    }
-    .bomb-apple::after {
-      content: "💣";
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      font-size: 1rem;
-      opacity: 0.6;
-    }
-    .time-accelerator-apple::after {
-      content: "⏱";
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      font-size: 1rem;
-      opacity: 0.8;
-    }
-    /* 아이템 칸 */
-    #inventory-container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto 10px auto;
-      padding: 5px;
-      border-radius: 10px;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-      background: #7b1f1f;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 40px;
-      font-size: 1rem;
-    }
-    #inventory {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .item {
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.2);
-      border: 2px solid #fff;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 1.3rem;
-      cursor: pointer;
     }
     /* 하단 버튼 */
     .btn-container {
@@ -210,6 +194,7 @@
       pointer-events: none;
       opacity: 0;
       z-index: 3000;
+      white-space: nowrap; /* 메시지가 한 줄로 나오도록 */
     }
     /* 파티클 컨테이너 */
     #particle-container {
@@ -277,13 +262,13 @@
   <div id="header">
     ⏳남은시간:<span id="timer">180</span>초 | 🎯점수:<span id="score">0</span>점
   </div>
-  <!-- 게임 컨테이너 -->
-  <div id="game-container">
-    <div id="game-board"></div>
-  </div>
-  <!-- 아이템 칸 -->
+  <!-- 아이템 칸 (상단 배치) -->
   <div id="inventory-container">
     <div id="inventory"></div>
+  </div>
+  <!-- 게임 컨테이너 (하단 배치) -->
+  <div id="game-container">
+    <div id="game-board"></div>
   </div>
   <!-- 하단 버튼 -->
   <div class="btn-container">
@@ -310,10 +295,6 @@
   <script>
     const ROWS = 14, COLS = 10;
     const boardSize = ROWS * COLS;
-    const bombChance = 0.1;
-    const timeAccelChance = 0.1;
-    const bombMaxCount = 2;
-    const timeAccelMaxCount = 2;
     let selectedApples = [];
     let score = 0;
     let timer = 180;
@@ -323,13 +304,14 @@
     let timerSpeed = 1;
     let comboCount = 0;
     let lastComboTime = 0;
+    let timerPaused = false;  // 타이머 일시정지를 위한 변수
+
+    // 사운드 객체
     const removeSound = new Audio('https://example.com/remove.mp3');
-    const bombSound   = new Audio('https://example.com/bomb.mp3');
-    const accelSound  = new Audio('https://example.com/accelerate.mp3');
+    const defaultSound = new Audio('https://blog.kakaocdn.net/dn/QS2Yf/btsjas57Dvt/hlplcZYpNsYAeExA2tHZi0/tfile.mp3');
     const comboSound  = new Audio('https://example.com/combo.mp3');
     const timeBonusSound = new Audio('https://example.com/timebonus.mp3');
-    const defaultSound = new Audio('https://blog.kakaocdn.net/dn/QS2Yf/btsjas57Dvt/hlplcZYpNsYAeExA2tHZi0/tfile.mp3');
-    
+
     function generateNumbers() {
       let numbers = [];
       for (let i = 0; i < boardSize / 2; i++) {
@@ -339,7 +321,7 @@
       }
       return numbers.sort(() => Math.random() - 0.5);
     }
-    
+
     function spawnParticles(x, y, color = 'yellow', count = 15) {
       const container = document.getElementById("particle-container");
       for (let i = 0; i < count; i++) {
@@ -358,7 +340,8 @@
         }, 1000);
       }
     }
-    
+
+    // 보드 생성 (아이템 관련 기존 로직 제거)
     function createBoard() {
       document.getElementById("score").textContent = "0";
       score = 0;
@@ -367,8 +350,6 @@
       comboCount = 0;
       lastComboTime = 0;
       document.getElementById("inventory").innerHTML = "";
-      let bombCount = 0;
-      let timeAccelCount = 0;
       const board = document.getElementById("game-board");
       board.innerHTML = "";
       const numbers = generateNumbers();
@@ -380,29 +361,22 @@
         apple.addEventListener("touchstart", startSelection);
         apple.addEventListener("touchmove", selectApple);
         apple.addEventListener("touchend", endSelection);
-        if (bombCount < bombMaxCount && Math.random() < bombChance) {
-          apple.classList.add("bomb-apple");
-          bombCount++;
-        } else if (timeAccelCount < timeAccelMaxCount && Math.random() < timeAccelChance) {
-          apple.classList.add("time-accelerator-apple");
-          timeAccelCount++;
-        }
         board.appendChild(apple);
       });
     }
-    
+
     function startGame() {
       gameActive = true;
       document.getElementById("game-container").style.filter = "none";
       startTimer();
     }
-    
+
     function startTimer() {
       clearInterval(timerInterval);
       timer = 180;
       document.getElementById("timer").textContent = timer;
       timerInterval = setInterval(() => {
-        if (!gameActive) return;
+        if (timerPaused) return;
         if (timer > 0) {
           timer -= timerSpeed;
           if (timer < 0) timer = 0;
@@ -414,7 +388,7 @@
         }
       }, 1000);
     }
-    
+
     function startSelection(event) {
       if (!gameActive) return;
       event.preventDefault();
@@ -422,14 +396,14 @@
       vibratedApples.clear();
       selectApple(event);
     }
-    
+
     function triggerVibration(index) {
       if (!vibratedApples.has(index)) {
         vibratedApples.add(index);
         if (navigator.vibrate) navigator.vibrate(50);
       }
     }
-    
+
     function selectApple(event) {
       event.preventDefault();
       const touch = event.touches ? event.touches[0] : event;
@@ -441,7 +415,7 @@
         triggerVibration(apple.dataset.index);
       }
     }
-    
+
     function endSelection() {
       document.removeEventListener("pointermove", selectApple);
       document.removeEventListener("pointerup", endSelection);
@@ -455,14 +429,6 @@
           const cy = rect.top + rect.height / 2;
           spawnParticles(cx, cy, '#ffcc00', 20);
         }
-        selectedApples.forEach(apple => {
-          if (apple.classList.contains("bomb-apple")) {
-            bombEffect(apple);
-          }
-          if (apple.classList.contains("time-accelerator-apple")) {
-            timeAcceleratorEffect();
-          }
-        });
         selectedApples.forEach(apple => {
           apple.style.opacity = "0";
           apple.style.pointerEvents = "none";
@@ -478,45 +444,7 @@
       }
       selectedApples.forEach(apple => apple.classList.remove("selected"));
     }
-    
-    function bombEffect(apple) {
-      const index = parseInt(apple.dataset.index, 10);
-      const row = Math.floor(index / 10);
-      const col = index % 10;
-      const rect = apple.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      spawnParticles(cx, cy, 'red', 30);
-      if (bombSound) {
-        bombSound.play().catch(() => defaultSound.play());
-      } else {
-        defaultSound.play();
-      }
-      const board = document.getElementById("game-board");
-      const allApples = board.getElementsByClassName("apple");
-      Array.from(allApples).forEach(a => {
-        const i = parseInt(a.dataset.index, 10);
-        const r = Math.floor(i / 10);
-        const c = i % 10;
-        if (r === row || c === col) {
-          a.style.opacity = "0";
-          a.style.pointerEvents = "none";
-        }
-      });
-      score += 10;
-      document.getElementById("score").textContent = score;
-    }
-    
-    function timeAcceleratorEffect() {
-      if (accelSound) {
-        accelSound.play().catch(() => defaultSound.play());
-      }
-      timerSpeed = 2;
-      setTimeout(() => {
-        timerSpeed = 1;
-      }, 5000);
-    }
-    
+
     function handleCombo() {
       const now = Date.now();
       if (now - lastComboTime <= 4000) {
@@ -532,11 +460,11 @@
       score += comboCount * 5;
       document.getElementById("score").textContent = score;
       if (comboCount >= 3) {
-        addInventoryItem("timeBonus");
+        addInventoryItem("mystery");
         comboCount = 0;
       }
     }
-    
+
     function showComboEffect(text, duration = 2000) {
       const comboDiv = document.getElementById("combo-effect");
       comboDiv.textContent = text;
@@ -553,57 +481,118 @@
         comboDiv.style.transition = "none";
       }, duration);
     }
-    
+
     function addInventoryItem(type) {
       const inventoryDiv = document.getElementById("inventory");
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("item");
       itemDiv.dataset.type = type;
-      if (type === "timeBonus") {
-        itemDiv.textContent = "⏰";
+      if (type === "mystery") {
+        itemDiv.textContent = "❓";
       }
       itemDiv.addEventListener("click", () => {
         useInventoryItem(itemDiv);
       });
       inventoryDiv.appendChild(itemDiv);
     }
-    
+
     function useInventoryItem(itemElement) {
       const type = itemElement.dataset.type;
-      if (type === "timeBonus") {
-        timer += 10;
-        document.getElementById("timer").textContent = Math.floor(timer);
-        if (timeBonusSound) {
-          timeBonusSound.play().catch(() => defaultSound.play());
+      if (type === "mystery") {
+        const randomEffect = Math.floor(Math.random() * 4);
+        let effectMessage = "";
+        switch(randomEffect) {
+          case 0:
+            effectMessage = "3x3 BOOM!";
+            applyBombEffect();
+            break;
+          case 1:
+            effectMessage = "2배속 시간흐름!";
+            timerSpeed = 2;
+            setTimeout(() => {
+              timerSpeed = 1;
+            }, 10000);  // 10초간 2배속
+            break;
+          case 2:
+            effectMessage = "사과 초기화!";
+            resetApplesOnBoard();
+            break;
+          case 3:
+            effectMessage = "10초 시간정지!";
+            pauseTimerForSeconds(10);
+            break;
         }
-        showComboEffect("Time Bonus!", 2000);
+        showComboEffect(effectMessage, 2000);
         spawnParticles(window.innerWidth / 2, window.innerHeight / 2, 'skyblue', 25);
       }
       itemElement.remove();
     }
-    
-    function hasValidCombination(numbers) {
-      const n = numbers.length;
-      const memo = {};
-      function helper(i, sum, count) {
-        const key = i + '-' + sum + '-' + count;
-        if (key in memo) return memo[key];
-        if (sum === 10 && count >= 2) return true;
-        if (i === n || sum > 10) return false;
-        if (helper(i + 1, sum + numbers[i], count + 1)) {
-          memo[key] = true;
-          return true;
-        }
-        if (helper(i + 1, sum, count)) {
-          memo[key] = true;
-          return true;
-        }
-        memo[key] = false;
-        return false;
-      }
-      return helper(0, 0, 0);
+
+    // 폭탄 효과: 터치한 사과를 중심으로 3x3 범위 제거
+    function applyBombEffect() {
+      gameActive = false;
+      const board = document.getElementById("game-board");
+      board.style.cursor = "crosshair";
+      board.addEventListener("click", bombTargetSelection);
     }
-    
+
+    function bombTargetSelection(event) {
+      const board = document.getElementById("game-board");
+      board.style.cursor = "default";
+      let apple = event.target;
+      if (!apple.classList.contains("apple")) {
+        showComboEffect("사과를 선택하세요!", 1500);
+        return;
+      }
+      const index = parseInt(apple.dataset.index, 10);
+      const row = Math.floor(index / COLS);
+      const col = index % COLS;
+      const rect = apple.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      spawnParticles(cx, cy, 'red', 30);
+      const allApples = document.querySelectorAll("#game-board .apple");
+      allApples.forEach(a => {
+        const i = parseInt(a.dataset.index, 10);
+        const r = Math.floor(i / COLS);
+        const c = i % COLS;
+        if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
+          a.style.opacity = "0";
+          a.style.pointerEvents = "none";
+        }
+      });
+      score += 10;
+      document.getElementById("score").textContent = score;
+      board.removeEventListener("click", bombTargetSelection);
+      gameActive = true;
+    }
+
+    // 사과 리셋: 보드를 새로 초기화 (타이머와 점수 유지)
+    function resetApplesOnBoard() {
+      const board = document.getElementById("game-board");
+      board.innerHTML = "";
+      const numbers = generateNumbers();
+      numbers.forEach((num, index) => {
+        const apple = document.createElement("div");
+        apple.classList.add("apple");
+        apple.textContent = num;
+        apple.dataset.index = index;
+        apple.addEventListener("touchstart", startSelection);
+        apple.addEventListener("touchmove", selectApple);
+        apple.addEventListener("touchend", endSelection);
+        board.appendChild(apple);
+      });
+    }
+
+    // 타이머 일시정지 (타이머만 멈추고 게임은 계속 진행)
+    function pauseTimerForSeconds(seconds) {
+      timerPaused = true;
+      setTimeout(() => {
+        timerPaused = false;
+      }, seconds * 1000);
+    }
+
+    // 재생성 기능 (기존 로직)
     function regenerateBoard() {
       const board = document.getElementById("game-board");
       let remainingApples = Array.from(board.getElementsByClassName("apple"))
@@ -632,57 +621,74 @@
         alert("재생성 완료! 10을 만들 수 있는 조합이 추가되었습니다.");
       }
     }
-    
-    // 이벤트 리스너 등록
+
+    function hasValidCombination(numbers) {
+      const n = numbers.length;
+      const memo = {};
+      function helper(i, sum, count) {
+        const key = i + '-' + sum + '-' + count;
+        if (key in memo) return memo[key];
+        if (sum === 10 && count >= 2) return true;
+        if (i === n || sum > 10) return false;
+        if (helper(i + 1, sum + numbers[i], count + 1)) {
+          memo[key] = true;
+          return true;
+        }
+        if (helper(i + 1, sum, count)) {
+          memo[key] = true;
+          return true;
+        }
+        memo[key] = false;
+        return false;
+      }
+      return helper(0, 0, 0);
+    }
+
+    // 모달창 관련 이벤트 처리
     document.getElementById("start-btn").addEventListener("click", () => {
       document.getElementById("overlay").style.display = "none";
       startGame();
     });
-    
+
     document.getElementById("restart-btn").addEventListener("click", () => {
       createBoard();
       startGame();
     });
-    
+
     document.getElementById("regenerate-btn").addEventListener("click", () => {
       regenerateBoard();
     });
-    
-    // 모달창 관련 이벤트 처리
+
     document.getElementById("instructions-btn").addEventListener("click", () => {
       openModal("instructions");
     });
-    
+
     document.getElementById("inquiry-btn").addEventListener("click", () => {
       openModal("inquiry");
     });
-    
+
     function openModal(type) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
       if (type === "instructions") {
-        modalBody.innerHTML = `
-          <iframe width="100%" height="500" src="https://www.youtube.com/embed/U_rn5bleF_k?si=Jbnx8fX9xMX-iP2O" 
-          frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen></iframe>
-        `;
+        modalBody.innerHTML = '<iframe width="100%" height="500" src="https://www.youtube.com/embed/U_rn5bleF_k?si=Jbnx8fX9xMX-iP2O" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
       } else if (type === "inquiry") {
-        modalBody.innerHTML = `<p style="font-size:1.5rem;">개발중입니다</p>`;
+        modalBody.innerHTML = '<p style="font-size:1.5rem;">개발중입니다</p>';
       }
       modal.style.display = "block";
     }
-    
+
     document.querySelector(".close-btn").addEventListener("click", () => {
       document.getElementById("modal").style.display = "none";
     });
-    
+
     window.addEventListener("click", (event) => {
       const modal = document.getElementById("modal");
       if (event.target === modal) {
         modal.style.display = "none";
       }
     });
-    
+
     document.addEventListener("DOMContentLoaded", () => {
       createBoard();
     });
