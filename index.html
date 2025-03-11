@@ -6,266 +6,271 @@
   <title>씹드래그</title>
   <style>
     /* 기본 리셋 */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      background: #fff; /* 전체 배경 흰색 */
-      font-family: Arial, sans-serif;
-      text-align: center;
-      min-height: 100vh;
-      /* iOS 호환 불필요: overflow: hidden 가능 */
-      overflow: hidden;
-      touch-action: none;
-      position: relative;
-    }
-    /* 헤더 */
-    #header {
-      background: #f5f5f5; /* 밝은 회색 */
-      color: #333;
-      padding: 12px 5px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      border-bottom: 1px solid #ddd;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    #timer, #score {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #ff5722; /* 포인트 색상(오렌지) */
-    }
-    /* 아이템 컨테이너 */
-    #inventory-container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 10px auto;
-      padding: 5px;
-      border-radius: 10px;
-      border: none;
-      box-shadow: none;
-      background: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 25px;
-      font-size: 1rem;
-      color: #333;
-    }
-    #inventory {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .item {
-      width: 25px;
-      height: 25px;
-      background: rgba(0,0,0,0.05);
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #333;
-      font-size: 1.3rem;
-      cursor: pointer;
-    }
-    /* 게임 컨테이너 */
-    #game-container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 10px auto;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      background: #fff;
-      position: relative;
-    }
-    /* 게임보드 */
-    #game-board {
-      display: grid;
-      grid-template-columns: repeat(10, 1fr);
-      gap: 5px;
-      width: 100%;
-      padding: 10px 0;
-    }
-    /* 사과 */
-    .apple {
-      aspect-ratio: 1; /* 아이폰 호환 X, 그냥 aspect-ratio로 정사각형 */
-      border-radius: 50%;
-      user-select: none;
-      transition: opacity 0.5s;
-      opacity: 1;
-      position: relative;
-      overflow: hidden;
-    }
-    .apple span {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: clamp(1rem, 2.5vw, 2rem);
-      color: #333;
-    }
-    .selected {
-      background: yellow !important;
-      color: black;
-      transform: scale(1.1);
-      box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
-    }
-    /* 하단 버튼 컨테이너 */
-    .btn-container {
-      background: #f5f5f5;
-      color: #333;
-      padding: 10px 5px;
-      font-size: 1.1rem;
-      border-top: 1px solid #ddd;
-      box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-    }
-    .btn-container button {
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      border-radius: 30px;
-      color: #fff;
-      background: linear-gradient(45deg, #ff7d47, #ff9800);
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    .btn-container button:hover {
-      background: linear-gradient(45deg, #ff5722, #ff9100);
-      transform: scale(1.05);
-    }
-    .btn-container button:active {
-      transform: scale(0.95);
-    }
-    /* 오버레이 (게임시작 화면) */
-    #overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      gap: 15px;
-    }
-    #overlay button {
-      padding: 20px 40px;
-      font-size: 2rem;
-      background: #ff5722;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease;
-    }
-    #overlay button:hover {
-      transform: scale(1.1);
-    }
-    /* 모달창 (고급 팝업) */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 4000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.5);
-    }
-    .modal-content {
-      background-color: #fff;
-      margin: 10% auto;
-      padding: 20px;
-      border-radius: 10px;
-      width: 80%;
-      max-width: 600px;
-      position: relative;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-    .close-btn {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    /* 콤보 이펙트 - 수정된 부분: 화면 상단 중앙에 배치, z-index 낮춤 */
-    #combo-effect {
-      position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 2rem;
-      color: #ffec00;
-      text-shadow: 2px 2px 4px #000;
-      pointer-events: none;
-      opacity: 0;
-      z-index: 2000;
-      white-space: nowrap;
-    }
-    /* 파티클 컨테이너 */
-    #particle-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 3000;
-      overflow: hidden;
-    }
-    .particle {
-      position: absolute;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: yellow;
-      opacity: 0.9;
-      animation: particle-move 1s forwards;
-    }
-    @keyframes particle-move {
-      0% {
-        transform: translate(0, 0) scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(var(--dx), var(--dy)) scale(0.5);
-        opacity: 0;
-      }
-    }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background: #fff; /* 전체 배경 흰색 */
+  font-family: Arial, sans-serif;
+  text-align: center;
+  min-height: 100vh;
+  /* iOS 호환 불필요: overflow: hidden 가능 */
+  overflow: hidden;
+  touch-action: none;
+  position: relative;
+}
+/* 헤더 */
+#header {
+  background: #f5f5f5; /* 밝은 회색 */
+  color: #333;
+  padding: 12px 5px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  /* 수정: 한 줄로 유지하기 위해 flex-wrap을 nowrap으로 변경 */
+  flex-wrap: nowrap;
+
+  /* 혹은 아래처럼 스크롤이 필요하다면 추가할 수 있음
+     white-space: nowrap;
+     overflow-x: auto;
+  */
+}
+#timer, #score {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ff5722; /* 포인트 색상(오렌지) */
+}
+/* 아이템 컨테이너 */
+#inventory-container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 10px auto;
+  padding: 5px;
+  border-radius: 10px;
+  border: none;
+  box-shadow: none;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 25px;
+  font-size: 1rem;
+  color: #333;
+}
+#inventory {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.item {
+  width: 25px;
+  height: 25px;
+  background: rgba(0,0,0,0.05);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+/* 게임 컨테이너 */
+#game-container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 10px auto;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  background: #fff;
+  position: relative;
+}
+/* 게임보드 */
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 5px;
+  width: 100%;
+  padding: 10px 0;
+}
+/* 사과 */
+.apple {
+  aspect-ratio: 1; /* 아이폰 호환 X, 그냥 aspect-ratio로 정사각형 */
+  border-radius: 50%;
+  user-select: none;
+  transition: opacity 0.5s;
+  opacity: 1;
+  position: relative;
+  overflow: hidden;
+}
+.apple span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(1rem, 2.5vw, 2rem);
+  color: #333;
+}
+.selected {
+  background: yellow !important;
+  color: black;
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(255, 255, 0, 0.7);
+}
+/* 하단 버튼 컨테이너 */
+.btn-container {
+  background: #f5f5f5;
+  color: #333;
+  padding: 10px 5px;
+  font-size: 1.1rem;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+.btn-container button {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  border-radius: 30px;
+  color: #fff;
+  background: linear-gradient(45deg, #ff7d47, #ff9800);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.btn-container button:hover {
+  background: linear-gradient(45deg, #ff5722, #ff9100);
+  transform: scale(1.05);
+}
+.btn-container button:active {
+  transform: scale(0.95);
+}
+/* 오버레이 (게임시작 화면) */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  gap: 15px;
+}
+#overlay button {
+  padding: 20px 40px;
+  font-size: 2rem;
+  background: #ff5722;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease;
+}
+#overlay button:hover {
+  transform: scale(1.1);
+}
+/* 모달창 (고급 팝업) */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 4000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 600px;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.close-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+/* 콤보 이펙트 - 수정된 부분: 화면 상단 중앙에 배치, z-index 낮춤 */
+#combo-effect {
+  position: fixed;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  color: #ffec00;
+  text-shadow: 2px 2px 4px #000;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2000;
+  white-space: nowrap;
+}
+/* 파티클 컨테이너 */
+#particle-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3000;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: yellow;
+  opacity: 0.9;
+  animation: particle-move 1s forwards;
+}
+@keyframes particle-move {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.5);
+    opacity: 0;
+  }
+}
 
 @media (max-width: 600px) {
   .btn-container button {
     width: 45%;
     font-size: 0.8rem;
   }
-  
   .apple span {
     font-size: 1rem; /* 숫자 크기 자동 조정 */
   }
