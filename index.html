@@ -21,7 +21,7 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
     
-    /* 상단 헤더: 좌측(홈, 리셋), 중앙(시간바 및 남은 시간), 우측(이모지) */
+    /* 상단 헤더: 좌측(홈, 리셋), 중앙(시간바 및 남은 시간), 우측(임의 이모지) */
     #header {
       background: #f5f5f5;
       padding: 8px;
@@ -45,14 +45,14 @@
       margin-right: 10px;
     }
     /* 중앙: 시간바 */
-    #time-bar-container {
-      position: relative;
-      width: 150px;
-      height: 18px;
-      background: #ccc;
-      border-radius: 9px;
-      overflow: hidden;
-    }
+#time-bar-container {
+  position: relative;
+  width: 180px;   /* 기존 150px보다 늘림 */
+  height: 25px;   /* 기존 18px보다 높임 */
+  background: #ccc;
+  border-radius: 12px;  /* 높이에 맞춰 조정 */
+  overflow: hidden;
+}
     #time-bar-fill {
       position: absolute;
       left: 0;
@@ -99,32 +99,42 @@
       font-weight: bold;
     }
     
-    /* 아이템 컨테이너 */
-    #inventory-container {
+    /* 게임 컨테이너 */
+    #game-container {
       width: 90%;
       max-width: 1200px;
       margin: 10px auto;
-      padding: 5px;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: #fff;
+      position: relative;
+    }
+    /* 스테이지 영역: 라운드표시와 아이템 가방 통합 */
+    #stage-indicator {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      min-height: 25px;
-      font-size: 1rem;
-      color: #333;
-    }
-    #inventory-label {
-      font-size: 1rem;
+      padding: 6px 10px;
+      background: linear-gradient(45deg, #ffe0cc, #ffd1dc);
+      color: #ff5722;
+      font-size: 1.1rem;
       font-weight: bold;
-      color: #333;
+      border-radius: 8px 8px 0 0;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
+      margin-bottom: 5px;
     }
-    #inventory {
+    /* 라운드 표시: 왼쪽 정렬 */
+    #round-indicator {
+      text-align: left;
+    }
+    /* 아이템 가방: 오른쪽에 최대 6개 아이콘 (기본 크기 25px x 25px) */
+    #item-bag {
       display: flex;
-      gap: 8px;
+      gap: 5px;
       flex-wrap: nowrap;
-      justify-content: center;
-      overflow: hidden;
     }
-    .item {
+    #item-bag .item {
       width: 25px;
       height: 25px;
       background: rgba(0,0,0,0.05);
@@ -138,28 +148,6 @@
       cursor: pointer;
     }
     
-    /* 게임 컨테이너 */
-    #game-container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 10px auto;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      background: #fff;
-      position: relative;
-    }
-    /* 스테이지 표시 */
-    #stage-indicator {
-      margin-bottom: 5px;
-      background: linear-gradient(45deg, #ffe0cc, #ffd1dc);
-      color: #ff5722;
-      font-size: 1.1rem;
-      font-weight: bold;
-      padding: 6px 0;
-      border-radius: 8px 8px 0 0;
-      text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
-    }
     /* 게임보드 */
     #game-board {
       display: grid;
@@ -168,15 +156,17 @@
       padding: 10px 0;
     }
     /* 사과 */
-    .apple {
-      aspect-ratio: 1;
-      border-radius: 50%;
-      user-select: none;
-      transition: opacity 0.5s;
-      opacity: 1;
-      position: relative;
-      overflow: hidden;
-    }
+.apple {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  user-select: none;
+  transition: opacity 0.5s;
+  max-width: 55px;  /* 최대 가로 크기를 50px로 제한 */
+  max-height: 55px; /* 최대 세로 크기를 50px로 제한 */
+  position: relative;
+  overflow: hidden;
+}
+
     .apple span {
       position: absolute;
       top: 50%;
@@ -328,16 +318,14 @@
     </div>
   </div>
   
-  <!-- 아이템 컨테이너 -->
-  <div id="inventory-container">
-    <div id="inventory-label">아이템</div>
-    <div id="inventory"></div>
-  </div>
+  <!-- (기존 아이템 컨테이너는 제거됨) -->
   
   <!-- 게임 컨테이너 -->
   <div id="game-container">
+    <!-- 스테이지 영역: 좌측에 라운드 표기, 우측에 아이템 가방 (최대 6개) -->
     <div id="stage-indicator">
-      스테이지 <span id="stage">1/5</span>
+      <div id="round-indicator">1R</div>
+      <div id="item-bag"></div>
     </div>
     <div id="game-board"></div>
   </div>
@@ -395,15 +383,15 @@
     
     // 사운드 (URL은 확인 후 사용)
     const removeSound = new Audio('https://example.com/remove.mp3');
-    const defaultSound = new Audio('https://blog.kakaocdn.net/dn/kPq6B/btsMHdSCEoa/id4EBuKeTLDdF6iJwxhKZ0/0279-%EB%A7%88%EC%9A%B0%EC%8A%A4%20%ED%81%B4%EB%A6%AD%EC%9D%8C.mp3');
+    const defaultSound = new Audio('https://blog.kakaocdn.net/dn/kPq6B/btsMHdSCEoa/id4EBuKeTLDdF6iJwxhKZ0/0279-%EB%A7%88%EC%9A%B0%EC%8A%A4%20%ED%81%B4%EB%A6%AD%EC%9D%8C.mp3?attach=1&knm=tfile.mp3');
     const comboSound  = new Audio('https://example.com/combo.mp3');
-    const timeBonusSound = new Audio('https://example.com/timebonus.mp3');
-    const bombSound   = new Audio('https://blog.kakaocdn.net/dn/b0u9H8/btsMHlJab5C/0DDSjFqvbgAl9Sk2bswbVk/%ED%8F%AD%ED%83%84%EC%A0%9C%EA%B1%B0.mp3');
+    const timeBonusSound = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3?attach=1&knm=tfile.mp3');
+    const bombSound   = new Audio('https://blog.kakaocdn.net/dn/b0u9H8/btsMHlJab5C/0DDSjFqvbgAl9Sk2bswbVk/%ED%8F%AD%ED%83%84%EC%A0%9C%EA%B1%B0.mp3?attach=1&knm=tfile.mp3');
     const speedSound  = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3');
-    const resetSound  = new Audio('https://blog.kakaocdn.net/dn/buWEEK/btsxgqy6xx4/SK8cujLMM7t2nn0xutkhqK/%ED%85%8C%EC%9E%8E%EB%90%98%EA%B0%90%EA%B8%B0%EC%86%8C%EB%A6%AC.mp3');
+    const resetSound  = new Audio('https://blog.kakaocdn.net/dn/bheiDA/btsMG8C9om1/GZF9Xk2uN5rAMunKlLHnKk/1-4%20%EA%B8%B4%EC%9E%A5%20%EC%A4%91-%EA%B0%95.mp3?attach=1&knm=tfile.mp3');
     const freezeSound = new Audio('https://blog.kakaocdn.net/dn/bmKQLR/btsMIaU7oxU/kdk474DvUk4yU0y16zb5Sk/0277-%EC%83%A4%EB%9D%BC%EB%9D%BC%EB%9E%91%20%EB%A7%88%EB%B2%95%EA%B0%80%EB%A3%A8.mp3');
-    const stageClearSound = new Audio('https://blog.kakaocdn.net/dn/cMSNlR/btsMH8b7Su1/wpCnH5p8lvRQpVYYi21itk/%EC%8A%A4%ED%85%8C%EC%9D%B4%EC%A7%80%ED%81%B4%EB%A6%AC%EC%96%B42.mp3');
-    const stageFailSound  = new Audio('https://blog.kakaocdn.net/dn/caxkR1/btsMHuzX7Fn/5XRrr1Crt0GT4iNPpHp9A0/%EA%B2%8C%EC%9E%84%EC%98%A4%EB%B2%84.mp3');
+    const stageClearSound = new Audio('https://blog.kakaocdn.net/dn/cMSNlR/btsMH8b7Su1/wpCnH5p8lvRQpVYYi21itk/%EC%8A%A4%ED%85%8C%EC%9D%B4%EC%A7%80%ED%81%B4%EB%A6%AC%EC%96%B42.mp3?attach=1&knm=tfile.mp3');
+    const stageFailSound  = new Audio('https://blog.kakaocdn.net/dn/caxkR1/btsMHuzX7Fn/5XRrr1Crt0GT4iNPpHp9A0/%EA%B2%8C%EC%9E%84%EC%98%A4%EB%B2%84.mp3?attach=1&knm=tfile.mp3');
     
     const pastelColors = ["#ffd1dc", "#c1ffc1", "#fff5ba", "#bae1ff", "#f2bbff"];
     
@@ -429,7 +417,7 @@
       updateTimeBar();
       comboCount = 0;
       lastComboTime = 0;
-      document.getElementById("inventory").innerHTML = "";
+      // 아이템 가방 내용은 초기화하지 않고 누적(아이템은 콤보 시 추가)
       const board = document.getElementById("game-board");
       board.innerHTML = "";
       const stage = stageSizes[currentStage];
@@ -461,7 +449,8 @@
         blankDiv.classList.add("blank");
         board.appendChild(blankDiv);
       }
-      document.getElementById("stage").textContent = `${currentStage + 1}/${stageSizes.length}`;
+      // 라운드 영역 업데이트: 현재 스테이지 번호를 "1R", "2R", … 로 표기
+      document.getElementById("round-indicator").textContent = `${currentStage + 1}R`;
     }
     
     function startGame() {
@@ -592,16 +581,17 @@
       setTimeout(() => { comboElement.style.opacity = "0"; }, duration);
     }
     
-    const MAX_INVENTORY_ITEMS = 6;
+    // 아이템 가방은 "item-bag" 영역에 추가 (최대 6개)
+    const MAX_ITEM_BAG_ITEMS = 6;
     function addInventoryItem(type) {
-      const inventoryDiv = document.getElementById("inventory");
-      if (inventoryDiv.children.length >= MAX_INVENTORY_ITEMS) return;
+      const bag = document.getElementById("item-bag");
+      if (bag.children.length >= MAX_ITEM_BAG_ITEMS) return;
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("item");
       itemDiv.dataset.type = type;
       if (type === "mystery") { itemDiv.textContent = "❓"; }
       itemDiv.addEventListener("click", () => { useInventoryItem(itemDiv); });
-      inventoryDiv.appendChild(itemDiv);
+      bag.appendChild(itemDiv);
     }
     
     function useInventoryItem(itemElement) {
@@ -633,10 +623,11 @@
             setTimeout(() => { timerSpeed = 1; }, 10000);
             break;
           case 3:
-            effectMessage = "숫자 초기화💢";
-            resetSound.play().catch(() => defaultSound.play());
-            resetApplesOnBoard();
-            break;
+  effectMessage = "시간 -20초";
+  // 남은 시간이 20초보다 적으면 0초로 만들기
+  timer = Math.max(timer - 20, 0);
+  updateTimeBar();
+  break;
           case 4:
             effectMessage = "시간 +10초";
             timeBonusSound.play().catch(() => defaultSound.play());
@@ -796,10 +787,9 @@
       if (activeApples.length === 0) { stageClear(); }
     }
     
-    // 각 스테이지가 끝날 때 남은 시간(초 당 1점)을 점수에 합산하도록 수정
+    // 각 스테이지 종료 시 남은 시간(초 당 1점)을 점수에 합산
     function stageClear() {
       clearInterval(timerInterval);
-      // 남은 시간 점수를 합산
       score += Math.floor(timer);
       document.getElementById("score").textContent = score;
       stageClearSound.play().catch(() => defaultSound.play());
@@ -855,7 +845,6 @@
       createBoard();
       startGame();
     });
-    // 기존의 "restart-btn" 대신 새로 추가한 "reset-btn" 사용
     document.getElementById("reset-btn").addEventListener("click", () => {
       currentStage = 0;
       score = 0;
