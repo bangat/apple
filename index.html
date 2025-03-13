@@ -619,7 +619,7 @@
             pauseTimerForSeconds(10);
             break;
           case 2:
-            effectMessage = "시간 빨리감기";
+            effectMessage = "시간 2배속";
             speedSound.play().catch(() => defaultSound.play());
             timerSpeed = 2;
             setTimeout(() => { timerSpeed = 1; }, 10000);
@@ -631,9 +631,9 @@
   updateTimeBar();
   break;
           case 4:
-            effectMessage = "시간 +10초";
+            effectMessage = "시간 +20초";
             timeBonusSound.play().catch(() => defaultSound.play());
-            timer = Math.min(timer + 10, stageTimes[currentStage]);
+            timer = Math.min(timer + 20, stageTimes[currentStage]);
             updateTimeBar();
             break;
         }
