@@ -2,66 +2,127 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- iOS 노치 고려 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>씹드래그</title>
   <style>
     /* 기본 리셋 */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #fff; /* 전체 배경 흰색 */
+      background: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
       min-height: 100vh;
       overflow: hidden;
       touch-action: none;
       position: relative;
+      /* iOS 안전 영역 적용 */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
-    /* 헤더 */
+    
+    /* 상단 헤더: 좌측(홈, 리셋), 중앙(시간바 및 남은 시간), 우측(이모지) */
     #header {
-      background: #f5f5f5; /* 밝은 회색 */
-      color: #333;
-      padding: 12px 5px;
-      font-size: 1.2rem;
-      font-weight: bold;
+      background: #f5f5f5;
+      padding: 8px;
       border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #header .left-section,
+    #header .center-section,
+    #header .right-section {
+      display: flex;
+      align-items: center;
+    }
+    /* 왼쪽: 홈, 리셋 버튼 */
+    #header .left-section button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    /* 중앙: 시간바 */
+    #time-bar-container {
+      position: relative;
+      width: 150px;
+      height: 18px;
+      background: #ccc;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+    #time-bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
       width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #ffec00, #ffcc00);
+      transition: width 0.2s ease;
+    }
+    #time-text {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: #333;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    /* 오른쪽: 임의 이모지 (예시로 🎮) */
+    #header .right-section {
+      font-size: 1.5rem;
+    }
+    
+    /* 하단 영역: 점수 및 최고 점수 */
+    #bottom-display {
+      background: #f5f5f5;
+      color: #333;
+      padding: 10px 5px;
+      font-size: 1rem;
+      border-top: 1px solid #ddd;
       display: flex;
       justify-content: center;
-      gap: 8px;
-      /* 한 줄로 유지하기 위해 nowrap 적용 */
-      flex-wrap: nowrap;
-      white-space: nowrap;
-      overflow-x: auto;
+      align-items: center;
+      gap: 20px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
     }
-    #timer, #score {
-      font-size: 1.5rem;
+    #bottom-display span {
+      font-size: 1.3rem;
+      color: #ff5722;
       font-weight: bold;
-      color: #ff5722; /* 포인트 색상(오렌지) */
     }
+    
     /* 아이템 컨테이너 */
     #inventory-container {
       width: 90%;
       max-width: 1200px;
       margin: 10px auto;
       padding: 5px;
-      border-radius: 10px;
-      background: none;
       display: flex;
-      justify-content: center;
       align-items: center;
+      gap: 10px;
       min-height: 25px;
       font-size: 1rem;
+      color: #333;
+    }
+    #inventory-label {
+      font-size: 1rem;
+      font-weight: bold;
       color: #333;
     }
     #inventory {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: center;
+      overflow: hidden;
     }
     .item {
       width: 25px;
@@ -76,6 +137,7 @@
       font-size: 1.3rem;
       cursor: pointer;
     }
+    
     /* 게임 컨테이너 */
     #game-container {
       width: 90%;
@@ -87,14 +149,14 @@
       background: #fff;
       position: relative;
     }
-    /* 스테이지 표시 박스 (게임 컨테이너 상단) */
+    /* 스테이지 표시 */
     #stage-indicator {
-      margin-bottom: 10px;
+      margin-bottom: 5px;
       background: linear-gradient(45deg, #ffe0cc, #ffd1dc);
       color: #ff5722;
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       font-weight: bold;
-      padding: 10px 0;
+      padding: 6px 0;
       border-radius: 8px 8px 0 0;
       text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
     }
@@ -128,53 +190,19 @@
       color: black;
       transform: scale(1.1);
     }
-    /* 빈칸 (보드 크기가 홀수일 경우) */
     .blank {
       pointer-events: none;
       background: transparent;
     }
-    /* 하단 버튼 컨테이너 */
-    .btn-container {
-      background: #f5f5f5;
-      color: #333;
-      padding: 10px 5px;
-      font-size: 1.1rem;
-      border-top: 1px solid #ddd;
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      z-index: 1000;
-    }
-    .btn-container button {
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      border-radius: 30px;
-      color: #fff;
-      background: linear-gradient(45deg, #ff7d47, #ff9800);
-      transition: all 0.3s ease;
-    }
-    .btn-container button:hover {
-      background: linear-gradient(45deg, #ff5722, #ff9100);
-      transform: scale(1.05);
-    }
-    .btn-container button:active {
-      transform: scale(0.95);
-    }
-    /* 게임시작/스테이지 클리어 오버레이 */
+    
+    /* 오버레이 및 모달 */
     #overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0,0,0,0.5);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -195,32 +223,23 @@
     #overlay button:hover {
       transform: scale(1.1);
     }
-
-    /* 하단 모달 (재생성 메시지) - 투명 배경, 하얀 박스만 표시 */
-    .modal-bottom {
+    .modal, .modal-bottom {
       display: none;
       position: fixed;
+      z-index: 4000;
       left: 50%;
-      bottom: 10%;
-      transform: translateX(-50%);
       width: 90%;
       max-width: 600px;
-      z-index: 4000;
-      background-color: transparent; /* 배경 제거 */
+      background-color: transparent;
     }
-    /* 중앙 모달 (스테이지 클리어 등) - 투명 배경, 하얀 박스만 표시 */
     .modal {
-      display: none;
-      position: fixed;
-      z-index: 4000;
-      left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      width: 90%;
-      max-width: 600px;
-      background-color: transparent; /* 배경 제거 */
     }
-    /* 모달 실제 내용: 흰색 박스, 둥근 모서리, 그림자 없음 */
+    .modal-bottom {
+      bottom: 10%;
+      transform: translateX(-50%);
+    }
     .modal-content {
       background-color: #fff;
       border-radius: 10px;
@@ -229,10 +248,8 @@
       text-align: center;
       position: relative;
       margin: 0 auto;
-      /* box-shadow 제거 */
       box-shadow: none;
     }
-
     .close-btn {
       position: absolute;
       right: 10px;
@@ -241,6 +258,7 @@
       font-weight: bold;
       cursor: pointer;
     }
+    
     /* 콤보 이펙트 */
     #combo-effect {
       position: fixed;
@@ -287,69 +305,74 @@
     }
     /* 반응형 */
     @media (max-width: 600px) {
-      .btn-container button {
-        width: 45%;
-        font-size: 0.8rem;
-      }
-      .apple span {
-        font-size: 1rem;
-      }
+      #time-text { font-size: 0.8rem; }
+      .apple span { font-size: 1rem; }
     }
   </style>
 </head>
 <body>
-  <!-- 헤더 -->
+  <!-- 상단 헤더 -->
   <div id="header">
-    ⏳남은시간:<span id="timer">180</span>초 | 🎯점수:<span id="score">0</span>점
+    <div class="left-section">
+      <button id="home-btn">🏠</button>
+      <button id="reset-btn">🔄</button>
+    </div>
+    <div class="center-section">
+      <div id="time-bar-container">
+        <div id="time-bar-fill"></div>
+        <span id="time-text">60</span>
+      </div>
+    </div>
+    <div class="right-section">
+      <span>🎮</span>
+    </div>
   </div>
-
-  <!-- 아이템 컨테이너 (상단) -->
+  
+  <!-- 아이템 컨테이너 -->
   <div id="inventory-container">
+    <div id="inventory-label">아이템</div>
     <div id="inventory"></div>
   </div>
-
+  
   <!-- 게임 컨테이너 -->
   <div id="game-container">
-    <!-- 새로 추가된 스테이지 표시 박스 -->
     <div id="stage-indicator">
       스테이지 <span id="stage">1/5</span>
     </div>
-    <!-- 실제 게임보드 -->
     <div id="game-board"></div>
   </div>
-
-  <!-- 하단 버튼 컨테이너 -->
-  <div class="btn-container">
-    <button id="restart-btn">다시하기</button>
-    <button id="regenerate-btn">재생성</button>
+  
+  <!-- 하단 영역: 점수 및 최고 점수 -->
+  <div id="bottom-display">
+    점수: <span id="score">0</span> | 최고 기록: <span id="best-score">0</span>
   </div>
-
-  <!-- 게임시작/스테이지 클리어 오버레이 (시작화면) -->
+  
+  <!-- 오버레이 -->
   <div id="overlay">
     <button id="start-btn">게임시작</button>
     <button id="instructions-btn">게임방법</button>
     <button id="inquiry-btn">문의하기</button>
   </div>
-
-  <!-- 중앙 모달 (스테이지 클리어 등) -->
+  
+  <!-- 중앙 모달 -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <span class="close-btn">&times;</span>
       <div id="modal-body"></div>
     </div>
   </div>
-
+  
   <!-- 콤보 이펙트 -->
   <div id="combo-effect"></div>
-
+  
   <!-- 파티클 컨테이너 -->
   <div id="particle-container"></div>
-
+  
   <script>
+    /*************** JavaScript 코드 (기존 코드 사용) ****************/
     // 각 스테이지별 시간 (초)
     const stageTimes = [60, 100, 130, 150, 180];
-
-    // 스테이지별 보드 크기 설정
+    // 스테이지별 보드 크기
     const stageSizes = [
       { rows: 4, cols: 4 },
       { rows: 6, cols: 5 },
@@ -358,11 +381,10 @@
       { rows: 12, cols: 10 }
     ];
     let currentStage = 0;
-
-    let boardSize;  // 현재 스테이지의 총 셀 개수 (빈칸 포함)
+    let boardSize;
     let selectedApples = [];
     let score = 0;
-    let timer = 180;   // 초기값은 createBoard()에서 덮어씀
+    let timer = stageTimes[0];
     let timerInterval;
     let gameActive = false;
     let vibratedApples = new Set();
@@ -370,68 +392,102 @@
     let comboCount = 0;
     let lastComboTime = 0;
     let timerPaused = false;
-
-    // 사운드 객체
+    
+    // 사운드 (URL은 확인 후 사용)
     const removeSound = new Audio('https://example.com/remove.mp3');
-    const defaultSound = new Audio('https://blog.kakaocdn.net/dn/kPq6B/btsMHdSCEoa/id4EBuKeTLDdF6iJwxhKZ0/0279-%EB%A7%88%EC%9A%B0%EC%8A%A4%20%ED%81%B4%EB%A6%AD%EC%9D%8C.mp3?attach=1&knm=tfile.mp3');
+    const defaultSound = new Audio('https://blog.kakaocdn.net/dn/kPq6B/btsMHdSCEoa/id4EBuKeTLDdF6iJwxhKZ0/0279-%EB%A7%88%EC%9A%B0%EC%8A%A4%20%ED%81%B4%EB%A6%AD%EC%9D%8C.mp3');
     const comboSound  = new Audio('https://example.com/combo.mp3');
     const timeBonusSound = new Audio('https://example.com/timebonus.mp3');
-    const bombSound = new Audio('https://blog.kakaocdn.net/dn/b0u9H8/btsMHlJab5C/0DDSjFqvbgAl9Sk2bswbVk/%ED%8F%AD%ED%83%84%EC%A0%9C%EA%B1%B0.mp3?attach=1&knm=tfile.mp3');
-    const speedSound = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3?attach=1&knm=tfile.mp3');
-    const resetSound = new Audio('https://blog.kakaocdn.net/dn/buWEEK/btsxgqy6xx4/SK8cujLMM7t2nn0xutkhqK/%ED%85%8C%EC%9E%8E%EB%90%98%EA%B0%90%EA%B8%B0%EC%86%8C%EB%A6%AC.mp3?attach=1&knm=tfile.mp3');
-    const freezeSound = new Audio('https://blog.kakaocdn.net/dn/bmKQLR/btsMIaU7oxU/kdk474DvUk4yU0y16zb5Sk/0277-%EC%83%A4%EB%9D%BC%EB%9D%BC%EB%9E%91%20%EB%A7%88%EB%B2%95%EA%B0%80%EB%A3%A8.mp3?attach=1&knm=tfile.mp3');
-    const stageClearSound = new Audio('https://blog.kakaocdn.net/dn/cMSNlR/btsMH8b7Su1/wpCnH5p8lvRQpVYYi21itk/%EC%8A%A4%ED%85%8C%EC%9D%B4%EC%A7%80%ED%81%B4%EB%A6%AC%EC%96%B42.mp3?attach=1&knm=tfile.mp3');
-    const stageFailSound = new Audio('https://blog.kakaocdn.net/dn/caxkR1/btsMHuzX7Fn/5XRrr1Crt0GT4iNPpHp9A0/%EA%B2%8C%EC%9E%84%EC%98%A4%EB%B2%84.mp3?attach=1&knm=tfile.mp3');
-
-    // 파스텔톤 색상
+    const bombSound   = new Audio('https://blog.kakaocdn.net/dn/b0u9H8/btsMHlJab5C/0DDSjFqvbgAl9Sk2bswbVk/%ED%8F%AD%ED%83%84%EC%A0%9C%EA%B1%B0.mp3');
+    const speedSound  = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3');
+    const resetSound  = new Audio('https://blog.kakaocdn.net/dn/buWEEK/btsxgqy6xx4/SK8cujLMM7t2nn0xutkhqK/%ED%85%8C%EC%9E%8E%EB%90%98%EA%B0%90%EA%B8%B0%EC%86%8C%EB%A6%AC.mp3');
+    const freezeSound = new Audio('https://blog.kakaocdn.net/dn/bmKQLR/btsMIaU7oxU/kdk474DvUk4yU0y16zb5Sk/0277-%EC%83%A4%EB%9D%BC%EB%9D%BC%EB%9E%91%20%EB%A7%88%EB%B2%95%EA%B0%80%EB%A3%A8.mp3');
+    const stageClearSound = new Audio('https://blog.kakaocdn.net/dn/cMSNlR/btsMH8b7Su1/wpCnH5p8lvRQpVYYi21itk/%EC%8A%A4%ED%85%8C%EC%9D%B4%EC%A7%80%ED%81%B4%EB%A6%AC%EC%96%B42.mp3');
+    const stageFailSound  = new Audio('https://blog.kakaocdn.net/dn/caxkR1/btsMHuzX7Fn/5XRrr1Crt0GT4iNPpHp9A0/%EA%B2%8C%EC%9E%84%EC%98%A4%EB%B2%84.mp3');
+    
     const pastelColors = ["#ffd1dc", "#c1ffc1", "#fff5ba", "#bae1ff", "#f2bbff"];
-
-    // 모달 메시지 (중앙)
-    function showModalMessage(message) {
-      const modal = document.getElementById("modal");
-      const modalBody = document.getElementById("modal-body");
-      // 중앙 모달이므로 .modal-bottom 제거
-      modal.classList.remove("modal-bottom");
-      modalBody.innerHTML = `<p style="font-size:1rem; margin: 10px 0; word-break: keep-all;">${message}</p>`;
-      modal.style.display = "block";
+    
+    function updateBestScore() {
+      let best = localStorage.getItem("bestScore") || 0;
+      if (score > best) {
+        localStorage.setItem("bestScore", score);
+        best = score;
+      }
+      document.getElementById("best-score").textContent = best;
     }
-
-    // 하단 모달 메시지
-    function showBottomModalMessage(message) {
-      const modal = document.getElementById("modal");
-      const modalBody = document.getElementById("modal-body");
-      // 하단 모달이므로 .modal 클래스를 .modal-bottom으로 교체
-      modal.classList.add("modal-bottom");
-      modalBody.innerHTML = `<p style="font-size:1rem; margin: 10px 0; word-break: keep-all;">${message}</p>`;
-      modal.style.display = "block";
+    
+    function updateTimeBar() {
+      const maxTime = stageTimes[currentStage];
+      const ratio = timer / maxTime;
+      document.getElementById("time-bar-fill").style.width = (ratio * 100) + "%";
+      document.getElementById("time-text").textContent = Math.floor(timer);
     }
-
-    // 스테이지 클리어 모달 (중앙)
-    function showStageClearModal(message) {
-      const modal = document.getElementById("modal");
-      // 중앙 모달이므로 하단 클래스 제거
-      modal.classList.remove("modal-bottom");
-      const modalBody = document.getElementById("modal-body");
-      modalBody.innerHTML = `<p style="font-size:1rem; margin: 10px 0; word-break: keep-all;">${message}</p>
-                             <button id="next-stage-btn" style="padding:8px 16px; font-size:0.9rem; border:none; border-radius:5px; background:#ff7d47; color:#fff; cursor:pointer;">다음 스테이지</button>`;
-      modal.style.display = "block";
-      document.getElementById("next-stage-btn").addEventListener("click", () => {
-        modal.style.display = "none";
-        nextStage();
-      });
+    
+    function createBoard() {
+      gameActive = false;
+      timer = stageTimes[currentStage];
+      updateTimeBar();
+      comboCount = 0;
+      lastComboTime = 0;
+      document.getElementById("inventory").innerHTML = "";
+      const board = document.getElementById("game-board");
+      board.innerHTML = "";
+      const stage = stageSizes[currentStage];
+      const rows = stage.rows;
+      const cols = stage.cols;
+      board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      boardSize = rows * cols;
+      let appleCount = boardSize;
+      let hasBlank = false;
+      if (boardSize % 2 !== 0) {
+        appleCount = boardSize - 1;
+        hasBlank = true;
+      }
+      const numbers = generateNumbers(appleCount);
+      for (let i = 0; i < appleCount; i++) {
+        const apple = document.createElement("div");
+        apple.classList.add("apple");
+        apple.dataset.index = i;
+        const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        apple.style.background = randomColor;
+        const appleSpan = document.createElement("span");
+        appleSpan.textContent = numbers[i];
+        apple.appendChild(appleSpan);
+        apple.addEventListener("touchstart", startSelection);
+        board.appendChild(apple);
+      }
+      if (hasBlank) {
+        const blankDiv = document.createElement("div");
+        blankDiv.classList.add("blank");
+        board.appendChild(blankDiv);
+      }
+      document.getElementById("stage").textContent = `${currentStage + 1}/${stageSizes.length}`;
     }
-
-    // 콤보 이펙트 표시 함수
-    function showComboEffect(message, duration) {
-      const comboElement = document.getElementById("combo-effect");
-      comboElement.textContent = message;
-      comboElement.style.opacity = "1";
-      setTimeout(() => {
-        comboElement.style.opacity = "0";
-      }, duration);
+    
+    function startGame() {
+      gameActive = true;
+      document.getElementById("game-container").style.filter = "none";
+      startTimer();
     }
-
-    // 난수 생성 (count: 생성할 사과 개수; 항상 짝수여야 함)
+    
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timerPaused) return;
+        if (timer > 0) {
+          timer -= timerSpeed;
+          if (timer < 0) timer = 0;
+          updateTimeBar();
+        } else {
+          clearInterval(timerInterval);
+          gameActive = false;
+          stageFailSound.play().catch(() => defaultSound.play());
+          updateBestScore();
+          showModalMessage(`⏰ 게임 종료! 최종 점수: ${score}`);
+        }
+      }, 1000);
+    }
+    
     function generateNumbers(count) {
       let numbers = [];
       for (let i = 0; i < count / 2; i++) {
@@ -441,8 +497,7 @@
       }
       return numbers.sort(() => Math.random() - 0.5);
     }
-
-    // 파티클 생성
+    
     function spawnParticles(x, y, color = 'yellow', count = 15) {
       const container = document.getElementById("particle-container");
       for (let i = 0; i < count; i++) {
@@ -456,114 +511,22 @@
         p.style.setProperty('--dx', dx + "px");
         p.style.setProperty('--dy', dy + "px");
         container.appendChild(p);
-        setTimeout(() => {
-          container.removeChild(p);
-        }, 1000);
+        setTimeout(() => { container.removeChild(p); }, 1000);
       }
     }
-
-    // 보드 생성 (현재 스테이지에 맞게)
-    function createBoard() {
-      document.getElementById("score").textContent = score;
-      gameActive = false;
-
-      // 스테이지별 시간 설정
-      timer = stageTimes[currentStage];
-      document.getElementById("timer").textContent = timer;
-
-      comboCount = 0;
-      lastComboTime = 0;
-      document.getElementById("inventory").innerHTML = "";
-      const board = document.getElementById("game-board");
-      board.innerHTML = "";
-
-      // 현재 스테이지의 행, 열 설정
-      const stage = stageSizes[currentStage];
-      const rows = stage.rows;
-      const cols = stage.cols;
-      board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-      boardSize = rows * cols;
-
-      let appleCount = boardSize;
-      let hasBlank = false;
-      // 보드 총 셀 수가 홀수이면 마지막 한 칸은 빈칸 처리
-      if (boardSize % 2 !== 0) {
-        appleCount = boardSize - 1;
-        hasBlank = true;
-      }
-      const numbers = generateNumbers(appleCount);
-
-      // 사과 생성
-      for (let i = 0; i < appleCount; i++) {
-        const apple = document.createElement("div");
-        apple.classList.add("apple");
-        apple.dataset.index = i;
-        // 파스텔 배경 색상
-        const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
-        apple.style.background = randomColor;
-        const appleSpan = document.createElement("span");
-        appleSpan.textContent = numbers[i];
-        apple.appendChild(appleSpan);
-        apple.addEventListener("touchstart", startSelection);
-        board.appendChild(apple);
-      }
-      // 빈칸 추가 (홀수일 경우)
-      if (hasBlank) {
-        const blankDiv = document.createElement("div");
-        blankDiv.classList.add("blank");
-        board.appendChild(blankDiv);
-      }
-      // 스테이지 UI 업데이트
-      document.getElementById("stage").textContent = (currentStage + 1) + "/" + stageSizes.length;
-    }
-
-    // 게임 시작
-    function startGame() {
-      gameActive = true;
-      document.getElementById("game-container").style.filter = "none";
-      startTimer();
-    }
-
-    // 타이머 시작
-    function startTimer() {
-      clearInterval(timerInterval);
-      timerInterval = setInterval(() => {
-        if (timerPaused) return;
-        if (timer > 0) {
-          timer -= timerSpeed;
-          if (timer < 0) timer = 0;
-          document.getElementById("timer").textContent = Math.floor(timer);
-        } else {
-          clearInterval(timerInterval);
-          gameActive = false;
-          stageFailSound.play().catch(() => defaultSound.play());
-          showModalMessage(`⏰ 게임 종료! 최종 점수: ${score}`);
-        }
-      }, 1000);
-    }
-
-    // 드래그 시작
-    function startSelection(event) {
+    
+    function startSelection(e) {
       if (!gameActive) return;
-      event.preventDefault();
+      e.preventDefault();
       selectedApples = [];
       vibratedApples.clear();
-      selectApple(event);
+      selectApple(e);
       document.addEventListener("touchmove", selectApple);
       document.addEventListener("touchend", endSelection);
     }
-
-    function triggerVibration(index) {
-      if (!vibratedApples.has(index)) {
-        vibratedApples.add(index);
-        if (navigator.vibrate) navigator.vibrate(50);
-      }
-    }
-
-    // 드래그 중 사과 선택
-    function selectApple(event) {
-      event.preventDefault();
-      const touch = event.touches ? event.touches[0] : event;
+    function selectApple(e) {
+      e.preventDefault();
+      const touch = e.touches ? e.touches[0] : e;
       const apple = document.elementFromPoint(touch.clientX, touch.clientY);
       if (!apple || !apple.classList.contains("apple")) return;
       if (!selectedApples.includes(apple)) {
@@ -572,21 +535,20 @@
         triggerVibration(apple.dataset.index);
       }
     }
-
-    // 드래그 종료 후 처리
+    function triggerVibration(index) {
+      if (!vibratedApples.has(index)) {
+        vibratedApples.add(index);
+        if (navigator.vibrate) navigator.vibrate(50);
+      }
+    }
     function endSelection() {
       document.removeEventListener("touchmove", selectApple);
       document.removeEventListener("touchend", endSelection);
-      const sum = selectedApples.reduce(
-        (acc, apple) => acc + parseInt(apple.querySelector("span").textContent, 10),
-        0
-      );
+      const sum = selectedApples.reduce((acc, apple) => acc + parseInt(apple.querySelector("span").textContent, 10), 0);
       if (sum === 10 && selectedApples.length >= 2) {
         if (selectedApples.length > 0) {
           const rect = selectedApples[0].getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
-          spawnParticles(cx, cy, '#ffcc00', 20);
+          spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, '#ffcc00', 20);
         }
         selectedApples.forEach(apple => {
           apple.style.opacity = "0";
@@ -594,29 +556,27 @@
         });
         score += selectedApples.length * 2;
         document.getElementById("score").textContent = score;
-        if (removeSound) {
-          removeSound.play().catch(() => defaultSound.play());
-        } else {
-          defaultSound.play();
-        }
+        removeSound.play().catch(() => defaultSound.play());
         handleCombo();
       }
       selectedApples.forEach(apple => apple.classList.remove("selected"));
       checkStageClear();
+      const remainingApples = Array.from(document.querySelectorAll("#game-board .apple"))
+        .filter(a => a.style.opacity !== "0" && a.style.pointerEvents !== "none");
+      if (remainingApples.length > 0) {
+        const numbers = remainingApples.map(apple => Number(apple.querySelector("span").textContent));
+        if (remainingApples.length < 2 || !hasValidCombination(numbers)) {
+          regenerateBoard();
+        }
+      }
     }
-
-    // 콤보 처리
+    
     function handleCombo() {
       const now = Date.now();
-      if (now - lastComboTime <= 4000) {
-        comboCount++;
-      } else {
-        comboCount = 1;
-      }
+      if (now - lastComboTime <= 4000) { comboCount++; }
+      else { comboCount = 1; }
       lastComboTime = now;
-      if (comboSound) {
-        comboSound.play().catch(() => defaultSound.play());
-      }
+      if (comboSound) { comboSound.play().catch(() => defaultSound.play()); }
       showComboEffect("COMBO x" + comboCount + "!", 2000);
       score += comboCount * 5;
       document.getElementById("score").textContent = score;
@@ -625,83 +585,83 @@
         comboCount = 0;
       }
     }
-
-    // 인벤토리에 아이템 추가
+    function showComboEffect(message, duration) {
+      const comboElement = document.getElementById("combo-effect");
+      comboElement.textContent = message;
+      comboElement.style.opacity = "1";
+      setTimeout(() => { comboElement.style.opacity = "0"; }, duration);
+    }
+    
+    const MAX_INVENTORY_ITEMS = 6;
     function addInventoryItem(type) {
       const inventoryDiv = document.getElementById("inventory");
+      if (inventoryDiv.children.length >= MAX_INVENTORY_ITEMS) return;
       const itemDiv = document.createElement("div");
       itemDiv.classList.add("item");
       itemDiv.dataset.type = type;
-      if (type === "mystery") {
-        itemDiv.textContent = "❓";
-      }
-      itemDiv.addEventListener("click", () => {
-        useInventoryItem(itemDiv);
-      });
+      if (type === "mystery") { itemDiv.textContent = "❓"; }
+      itemDiv.addEventListener("click", () => { useInventoryItem(itemDiv); });
       inventoryDiv.appendChild(itemDiv);
     }
-
-    // 아이템 사용 (무작위 효과: 버프 vs 디버프)
-
-   function useInventoryItem(itemElement) {
-  const type = itemElement.dataset.type;
-  if (type === "mystery") {
-    // 확률 가중치: 폭탄(10), 10초 정지(15), 시간2배 빨리감기(10), 사과 초기화(5) → 총 40
-    let r = Math.random() * 40;
-    let randomEffect;
-    if (r < 10) {
-      randomEffect = 0; // 폭탄 효과 (좋은템)
-    } else if (r < 10 + 15) { // r < 25
-      randomEffect = 1; // 10초 시간정지 (좋은템)
-    } else if (r < 25 + 10) { // r < 35
-      randomEffect = 2; // 시간2배 빨리감기 (안좋은템)
-    } else {
-      randomEffect = 3; // 사과 초기화 (제일 안좋은템)
+    
+    function useInventoryItem(itemElement) {
+      const type = itemElement.dataset.type;
+      if (type === "mystery") {
+        let r = Math.random() * 50;
+        let randomEffect;
+        if (r < 10) { randomEffect = 0; }
+        else if (r < 20) { randomEffect = 1; }
+        else if (r < 30) { randomEffect = 4; }
+        else if (r < 38) { randomEffect = 2; }
+        else { randomEffect = 3; }
+    
+        let effectMessage = "";
+        switch(randomEffect) {
+          case 0:
+            effectMessage = "3x3 BOOM💣";
+            applyBombEffect();
+            break;
+          case 1:
+            effectMessage = "10초 시간정지";
+            freezeSound.play().catch(() => defaultSound.play());
+            pauseTimerForSeconds(10);
+            break;
+          case 2:
+            effectMessage = "시간 빨리감기";
+            speedSound.play().catch(() => defaultSound.play());
+            timerSpeed = 2;
+            setTimeout(() => { timerSpeed = 1; }, 10000);
+            break;
+          case 3:
+            effectMessage = "숫자 초기화💢";
+            resetSound.play().catch(() => defaultSound.play());
+            resetApplesOnBoard();
+            break;
+          case 4:
+            effectMessage = "시간 +10초";
+            timeBonusSound.play().catch(() => defaultSound.play());
+            timer = Math.min(timer + 10, stageTimes[currentStage]);
+            updateTimeBar();
+            break;
+        }
+        showComboEffect(effectMessage, 2000);
+        spawnParticles(window.innerWidth/2, window.innerHeight/2, 'skyblue', 25);
+      }
+      itemElement.remove();
     }
-    let effectMessage = "";
-    switch(randomEffect) {
-      case 0:
-        effectMessage = "3x3 BOOM💣";
-        applyBombEffect();
-        break;
-      case 1:
-        effectMessage = "10초 시간정지";
-        freezeSound.play().catch(() => defaultSound.play());
-        pauseTimerForSeconds(10);
-        break;
-      case 2:
-        effectMessage = "시간 빨리감기";
-        speedSound.play().catch(() => defaultSound.play());
-        timerSpeed = 2;
-        setTimeout(() => { timerSpeed = 1; }, 10000);
-        break;
-      case 3:
-        effectMessage = "숫자 초기화💢";
-        resetSound.play().catch(() => defaultSound.play());
-        resetApplesOnBoard();
-        break;
-    }
-    showComboEffect(effectMessage, 2000);
-    spawnParticles(window.innerWidth / 2, window.innerHeight / 2, 'skyblue', 25);
-  }
-  itemElement.remove();
-}
-
-
-    // 폭탄 효과
+    
     function applyBombEffect() {
       gameActive = false;
       const board = document.getElementById("game-board");
       board.style.cursor = "crosshair";
       board.addEventListener("click", bombTargetSelection);
     }
-
     function bombTargetSelection(event) {
       const board = document.getElementById("game-board");
       board.style.cursor = "default";
       let apple = event.target;
       if (!apple.classList.contains("apple")) {
-        showComboEffect("사과를 선택하세요!", 1500);
+        showComboEffect("숫자를 선택하세요!", 1500);
         return;
       }
       bombSound.play().catch(() => defaultSound.play());
@@ -711,9 +671,7 @@
       const row = Math.floor(index / cols);
       const col = index % cols;
       const rect = apple.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      spawnParticles(cx, cy, 'red', 30);
+      spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, 'red', 30);
       const allApples = document.querySelectorAll("#game-board .apple");
       allApples.forEach(a => {
         const i = parseInt(a.dataset.index, 10);
@@ -730,8 +688,7 @@
       gameActive = true;
       checkStageClear();
     }
-
-    // 사과 리셋
+    
     function resetApplesOnBoard() {
       const board = document.getElementById("game-board");
       board.innerHTML = "";
@@ -742,10 +699,7 @@
       boardSize = rows * cols;
       let appleCount = boardSize;
       let hasBlank = false;
-      if (boardSize % 2 !== 0) {
-        appleCount = boardSize - 1;
-        hasBlank = true;
-      }
+      if (boardSize % 2 !== 0) { appleCount = boardSize - 1; hasBlank = true; }
       const numbers = generateNumbers(appleCount);
       for (let i = 0; i < appleCount; i++){
         const apple = document.createElement("div");
@@ -765,57 +719,53 @@
         board.appendChild(blankDiv);
       }
     }
-
-    // 타이머 일시정지
+    
+    function reindexApples() {
+      const board = document.getElementById("game-board");
+      const allCells = board.querySelectorAll(".apple, .blank");
+      allCells.forEach((cell, idx) => { cell.dataset.index = idx; });
+    }
+    
     function pauseTimerForSeconds(seconds) {
       timerPaused = true;
-      setTimeout(() => {
-        timerPaused = false;
-      }, seconds * 1000);
+      setTimeout(() => { timerPaused = false; }, seconds * 1000);
     }
-
-    // 재생성
+    
     function regenerateBoard() {
       const board = document.getElementById("game-board");
       let remainingApples = Array.from(board.getElementsByClassName("apple"))
         .filter(apple => apple.style.opacity !== "0" && apple.style.pointerEvents !== "none");
-
-      if (remainingApples.length === 1) {
-        // 사과가 1개만 남은 경우, 추가로 1개 생성하여 10을 맞춤
-        const existingApple = remainingApples[0];
-        let existingNum = parseInt(existingApple.querySelector("span").textContent, 10);
+      if (remainingApples.length <= 2 && remainingApples.length > 0) {
+        const refApple = remainingApples[remainingApples.length - 1];
+        let existingNum = parseInt(refApple.querySelector("span").textContent, 10);
         let newNum = 10 - existingNum;
         const newApple = document.createElement("div");
         newApple.classList.add("apple");
-        newApple.dataset.index = `extra-0`;
+        newApple.dataset.index = "-1";
         const randomColor = pastelColors[Math.floor(Math.random() * pastelColors.length)];
         newApple.style.background = randomColor;
         const newSpan = document.createElement("span");
         newSpan.textContent = newNum;
         newApple.appendChild(newSpan);
         newApple.addEventListener("touchstart", startSelection);
-        board.appendChild(newApple);
+        refApple.insertAdjacentElement("afterend", newApple);
+        reindexApples();
         return;
       } else if (remainingApples.length === 0) {
         showBottomModalMessage("더 이상 재생성할 사과가 없습니다!");
-        setTimeout(() => {
-          document.getElementById("modal").style.display = "none";
-        }, 1500);
+        setTimeout(() => { document.getElementById("modal").style.display = "none"; }, 1500);
         return;
       }
       let numbers = remainingApples.map(apple => Number(apple.querySelector("span").textContent));
       if (hasValidCombination(numbers)) {
         showBottomModalMessage("10을 만들 수 있는 조합이 남아있습니다!");
-        setTimeout(() => {
-          document.getElementById("modal").style.display = "none";
-        }, 1500);
+        setTimeout(() => { document.getElementById("modal").style.display = "none"; }, 1500);
         return;
       } else {
-        // 남은 모든 사과를 10을 만드는 쌍으로 재구성 (남은 사과의 수는 짝수라고 가정)
         let indices = remainingApples.map((_, idx) => idx);
         indices.sort(() => Math.random() - 0.5);
         for (let i = 0; i < indices.length; i += 2) {
-          let r = Math.floor(Math.random() * 9) + 1; // 1~9 사이의 무작위 숫자
+          let r = Math.floor(Math.random() * 9) + 1;
           let idx1 = indices[i];
           let idx2 = indices[i + 1];
           remainingApples[idx1].querySelector("span").textContent = r;
@@ -823,7 +773,7 @@
         }
       }
     }
-
+    
     function hasValidCombination(numbers) {
       const n = numbers.length;
       const memo = {};
@@ -832,50 +782,72 @@
         if (key in memo) return memo[key];
         if (sum === 10 && count >= 2) return true;
         if (i === n || sum > 10) return false;
-        if (helper(i + 1, sum + numbers[i], count + 1)) {
-          memo[key] = true;
-          return true;
-        }
-        if (helper(i + 1, sum, count)) {
-          memo[key] = true;
-          return true;
-        }
+        if (helper(i + 1, sum + numbers[i], count + 1)) { memo[key] = true; return true; }
+        if (helper(i + 1, sum, count)) { memo[key] = true; return true; }
         memo[key] = false;
         return false;
       }
       return helper(0, 0, 0);
     }
-
-    // 스테이지 클리어 체크 (모든 사과가 제거되었으면)
+    
     function checkStageClear() {
       const activeApples = Array.from(document.querySelectorAll("#game-board .apple"))
         .filter(apple => apple.style.opacity !== "0" && apple.style.pointerEvents !== "none");
-      if (activeApples.length === 0) {
-        stageClear();
-      }
+      if (activeApples.length === 0) { stageClear(); }
     }
-
-    // 스테이지 클리어 처리
+    
+    // 각 스테이지가 끝날 때 남은 시간(초 당 1점)을 점수에 합산하도록 수정
     function stageClear() {
       clearInterval(timerInterval);
+      // 남은 시간 점수를 합산
+      score += Math.floor(timer);
+      document.getElementById("score").textContent = score;
       stageClearSound.play().catch(() => defaultSound.play());
       if (currentStage < stageSizes.length - 1) {
         showStageClearModal(`스테이지 ${currentStage + 1} 클리어!`);
       } else {
+        updateBestScore();
         showModalMessage(`최종 스테이지 클리어! 최종 점수: ${score}`);
       }
       gameActive = false;
     }
-
-    // 다음 스테이지 진행
+    
+    function showStageClearModal(message) {
+      const modal = document.getElementById("modal");
+      modal.classList.remove("modal-bottom");
+      const modalBody = document.getElementById("modal-body");
+      modalBody.innerHTML = `<p style="font-size:1rem; margin:10px 0;">${message}</p>
+                             <button id="next-stage-btn" style="padding:8px 16px; font-size:0.9rem; border:none; border-radius:5px; background:#ff7d47; color:#fff; cursor:pointer;">다음 스테이지</button>`;
+      modal.style.display = "block";
+      document.getElementById("next-stage-btn").addEventListener("click", () => {
+        modal.style.display = "none";
+        nextStage();
+      });
+    }
+    
+    function showModalMessage(message) {
+      const modal = document.getElementById("modal");
+      const modalBody = document.getElementById("modal-body");
+      modal.classList.remove("modal-bottom");
+      modalBody.innerHTML = `<p style="font-size:1rem; margin:10px 0;">${message}</p>`;
+      modal.style.display = "block";
+    }
+    
+    function showBottomModalMessage(message) {
+      const modal = document.getElementById("modal");
+      const modalBody = document.getElementById("modal-body");
+      modal.classList.add("modal-bottom");
+      modalBody.innerHTML = `<p style="font-size:1rem; margin:10px 0;">${message}</p>`;
+      modal.style.display = "block";
+    }
+    
     function nextStage() {
       currentStage++;
       createBoard();
-      startTimer();
-      gameActive = true;
+      startGame();
     }
-
-    // 모달창 관련
+    
+    // 이벤트 리스너 (게임시작, 리셋, 게임방법, 문의하기)
     document.getElementById("start-btn").addEventListener("click", () => {
       document.getElementById("overlay").style.display = "none";
       currentStage = 0;
@@ -883,14 +855,12 @@
       createBoard();
       startGame();
     });
-    document.getElementById("restart-btn").addEventListener("click", () => {
+    // 기존의 "restart-btn" 대신 새로 추가한 "reset-btn" 사용
+    document.getElementById("reset-btn").addEventListener("click", () => {
       currentStage = 0;
       score = 0;
       createBoard();
       startGame();
-    });
-    document.getElementById("regenerate-btn").addEventListener("click", () => {
-      regenerateBoard();
     });
     document.getElementById("instructions-btn").addEventListener("click", () => {
       openModal("instructions");
@@ -898,38 +868,34 @@
     document.getElementById("inquiry-btn").addEventListener("click", () => {
       openModal("inquiry");
     });
-
-    // 게임방법: 유튜브 Shorts 링크 변경
+    
     function openModal(type) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
-      // 중앙 모달
       modal.classList.remove("modal-bottom");
       if (type === "instructions") {
-        modalBody.innerHTML = `
-          <iframe width="100%" height="500"
+        modalBody.innerHTML = 
+          `<iframe width="100%" height="500"
             src="https://www.youtube.com/embed/IqBbe-rXkrw"
             frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowfullscreen>
           </iframe>`;
-      } else if (type === "inquiry") {
-        modalBody.innerHTML = '<p style="font-size:1rem; margin:10px 0; word-break: keep-all;">개발중입니다</p>';
+      } else {
+        modalBody.innerHTML = '<p style="font-size:1rem; margin:10px 0;">개발중입니다</p>';
       }
       modal.style.display = "block";
     }
-
-    // 모달 닫기
+    
     document.querySelector(".close-btn").addEventListener("click", () => {
       document.getElementById("modal").style.display = "none";
     });
+    
     window.addEventListener("click", (event) => {
       const modal = document.getElementById("modal");
-      if (event.target === modal) {
-        modal.style.display = "none";
-      }
+      if (event.target === modal) { modal.style.display = "none"; }
     });
-
+    
     document.addEventListener("DOMContentLoaded", () => {
       createBoard();
     });
