@@ -361,13 +361,13 @@
   <script>
     /*************** JavaScript 코드 (기존 코드 사용) ****************/
     // 각 스테이지별 시간 (초)
-    const stageTimes = [60, 100, 130, 150, 180];
+    const stageTimes = [60, 80, 100, 140, 180];
     // 스테이지별 보드 크기
     const stageSizes = [
-      { rows: 4, cols: 4 },
       { rows: 6, cols: 5 },
-      { rows: 8, cols: 6 },
-      { rows: 10, cols: 7 },
+      { rows: 7, cols: 6 },
+      { rows: 8, cols: 7 },
+      { rows: 10, cols: 8 },
       { rows: 12, cols: 10 }
     ];
     let currentStage = 0;
@@ -387,12 +387,12 @@
     const removeSound = new Audio('https://example.com/remove.mp3');
     const defaultSound = new Audio('https://blog.kakaocdn.net/dn/kPq6B/btsMHdSCEoa/id4EBuKeTLDdF6iJwxhKZ0/0279-%EB%A7%88%EC%9A%B0%EC%8A%A4%20%ED%81%B4%EB%A6%AD%EC%9D%8C.mp3?attach=1&knm=tfile.mp3');
     const comboSound  = new Audio('https://example.com/combo.mp3');
-    const timeBonusSound = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3?attach=1&knm=tfile.mp3');
+    const timeBonusSound = new Audio('https://blog.kakaocdn.net/dn/bnUeZU/btsMKPQ2fE8/TpQ0McWbkcv8zgfYJE8uU0/%EC%8B%9C%EA%B0%84%2B.mp3?attach=1&knm=tfile.mp3');
     const bombSound   = new Audio('https://blog.kakaocdn.net/dn/b0u9H8/btsMHlJab5C/0DDSjFqvbgAl9Sk2bswbVk/%ED%8F%AD%ED%83%84%EC%A0%9C%EA%B1%B0.mp3?attach=1&knm=tfile.mp3');
-    const speedSound  = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3');
-    const resetSound  = new Audio('https://blog.kakaocdn.net/dn/bheiDA/btsMG8C9om1/GZF9Xk2uN5rAMunKlLHnKk/1-4%20%EA%B8%B4%EC%9E%A5%20%EC%A4%91-%EA%B0%95.mp3?attach=1&knm=tfile.mp3');
-    const freezeSound = new Audio('https://blog.kakaocdn.net/dn/bmKQLR/btsMIaU7oxU/kdk474DvUk4yU0y16zb5Sk/0277-%EC%83%A4%EB%9D%BC%EB%9D%BC%EB%9E%91%20%EB%A7%88%EB%B2%95%EA%B0%80%EB%A3%A8.mp3');
-    const stageClearSound = new Audio('https://blog.kakaocdn.net/dn/cMSNlR/btsMH8b7Su1/wpCnH5p8lvRQpVYYi21itk/%EC%8A%A4%ED%85%8C%EC%9D%B4%EC%A7%80%ED%81%B4%EB%A6%AC%EC%96%B42.mp3?attach=1&knm=tfile.mp3');
+    const speedSound  = new Audio('https://blog.kakaocdn.net/dn/SAcdh/btsMHt8Nemj/i1OloprKYHC1fgWg3d00Rk/0278-%EC%8B%9C%EA%B3%84%20%EC%A7%B8%EA%B9%8D%EC%A7%B8%EA%B9%8D.mp3?attach=1&knm=tfile.mp3');
+    const resetSound  = new Audio('https://blog.kakaocdn.net/dn/b0wncY/btsMKPpYebs/bDmQifirk3r0lZZ2bhYfEk/%EC%8B%9C%EA%B0%84-.mp3?attach=1&knm=tfile.mp3');
+    const freezeSound = new Audio('https://blog.kakaocdn.net/dn/bnUeZU/btsMKPQ2fE8/TpQ0McWbkcv8zgfYJE8uU0/%EC%8B%9C%EA%B0%84%2B.mp3?attach=1&knm=tfile.mp3');
+    const stageClearSound = new Audio('https://blog.kakaocdn.net/dn/1JneS/btsMKdrmUim/ObcQyRksanAuVwpTSoY5X1/%ED%81%B4%EB%A6%AC%EC%96%B4%EC%82%AC%EC%9A%B4%EB%93%9C.mp3?attach=1&knm=tfile.mp3');
     const stageFailSound  = new Audio('https://blog.kakaocdn.net/dn/caxkR1/btsMHuzX7Fn/5XRrr1Crt0GT4iNPpHp9A0/%EA%B2%8C%EC%9E%84%EC%98%A4%EB%B2%84.mp3?attach=1&knm=tfile.mp3');
     
     const pastelColors = ["#ffd1dc", "#c1ffc1", "#fff5ba", "#bae1ff", "#f2bbff"];
