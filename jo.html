@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프리미엄 게임 모드</title>
+  <style>
+    /* 기본 초기화 */
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: linear-gradient(120deg, #fafafa, #f5f5f5);
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* 헤더: 타이머 게이지 */
+    .header {
+      position: relative;
+      width: 100%;
+      height: 72px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid #e0e0e0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      z-index: 10; /* 오버레이보다 뒤에 있어야 함 */
+    }
+    .timer-gauge {
+      width: 90%;
+      height: 36px;
+      background: #ddd;
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+    }
+    .timer-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff5722, #e64a19);
+      width: 100%;
+      transition: width 0.2s;
+    }
+    .timer-text {
+      position: absolute;
+      top: 6px; 
+      left: 0;
+      width: 100%;
+      height: 100%;
+      line-height: 36px;
+      text-align: center;
+      font-size: 1rem;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    /* 메인 컨테이너 */
+    .container {
+      max-width: 500px;
+      width: 95%;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      z-index: 5; /* 오버레이보다 뒤에 있어야 함 */
+    }
+
+    /* 오버레이 */
+    #overlay {
+      position: fixed;
+      top: 0; 
+      left: 0; 
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      z-index: 9999; 
+    }
+    #overlay-content {
+      background: #fff;
+      padding: 30px 50px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    #start-btn {
+      font-size: 1.4rem;
+      padding: 15px 30px;
+      background: #ff5722;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #start-btn:hover {
+      background: #e64a19;
+    }
+
+    /* 목표 숫자 영역 */
+    .target-area {
+      font-size: 1.6rem;
+      text-align: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #fafafa;
+      border: 2px solid #ff5722;
+      border-radius: 10px;
+    }
+
+    /* 하트(목숨) 영역 */
+    .hearts {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+
+    /* 최고 라운드 */
+    .high-round {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 20px;
+      color: #e64a19;
+    }
+
+    /* 연산식 표시 (30라운드 이상) */
+    .expression-display {
+      text-align: center;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+      min-height: 30px;
+      color: #444;
+    }
+
+    /* 숫자/토큰 버튼 그리드 */
+    .numbers-grid {
+      display: grid;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+    .token-btn {
+      background: #f5f5f5;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.6rem;
+      padding: 15px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .token-btn:hover {
+      background: #e0e0e0;
+    }
+    .token-btn:disabled {
+      background: #cccccc;
+      color: #777;
+      cursor: not-allowed;
+    }
+
+    /* 제출 버튼 */
+    .submit-btn {
+      background: #ff5722;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.4rem;
+      padding: 15px;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 60%;
+      max-width: 300px;
+      margin: 0 auto 10px auto;
+    }
+    .submit-btn:hover {
+      background: #e64a19;
+    }
+
+    /* 작은 화면(모바일) 대응 */
+    @media (max-width: 480px) {
+      .timer-text {
+        font-size: 0.9rem;
+      }
+      .container {
+        padding: 15px;
+      }
+      .target-area {
+        font-size: 1.4rem;
+      }
+      .hearts {
+        font-size: 1.4rem;
+      }
+      .high-round {
+        font-size: 0.9rem;
+      }
+      .expression-display {
+        font-size: 1.3rem;
+      }
+      .numbers-grid {
+        gap: 10px;
+      }
+      .token-btn {
+        font-size: 1.4rem;
+        padding: 12px;
+      }
+      .submit-btn {
+        font-size: 1.2rem;
+        padding: 12px;
+      }
+      #start-btn {
+        font-size: 1.2rem;
+        padding: 12px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 오버레이 (처음 화면 & 게임오버 시 표시) -->
+  <div id="overlay">
+    <div id="overlay-content">
+      <button id="start-btn">게임시작</button>
+    </div>
+  </div>
+
+  <!-- 헤더: 타이머 게이지 -->
+  <header class="header">
+    <div class="timer-gauge">
+      <div class="timer-fill" id="timer-fill"></div>
+      <div class="timer-text" id="timer-text">남은 시간: 0초 | 라운드: 0</div>
+    </div>
+  </header>
+
+  <!-- 메인 컨테이너 -->
+  <div class="container">
+    <!-- 목표 숫자 영역 -->
+    <div class="target-area" id="target-area">목표 숫자: 0</div>
+
+    <!-- 하트(목숨) 영역 -->
+    <div class="hearts" id="hearts-display"></div>
+
+    <!-- 최고 라운드 표시 -->
+    <div class="high-round" id="high-round-display">최고 라운드: 0</div>
+    
+    <!-- (30라운드 이상인 경우) 연산식 표시 영역 -->
+    <div class="expression-display" id="expression-display"></div>
+    
+    <!-- 숫자/토큰 버튼 그리드 -->
+    <div class="numbers-grid" id="numbers-container"></div>
+    
+    <!-- 제출 버튼 -->
+    <button class="submit-btn" id="submit-btn">제출</button>
+  </div>
+
+  <script>
+    /* ======== 전역 변수 및 로직 (요청하신 내용 그대로) ======== */
+    let currentRound = 1;
+    let lives = 5;
+    let targetNumber = 0;
+    let availableNumbers = [];
+    let currentSelection = [];
+    let expressionStr = "";
+    let timeLimit = 10;
+    let timerAnimationId = null;
+    let highRound = Number(localStorage.getItem("highRound")) || 0;
+
+    const roundTimeThreshold = 20;     // 20라운드까지 10초, 그 이후 15초
+    const operatorRound = 30;         // 30라운드부터 연산자 모드
+    const subtractionOnlyRound = 40;  // 40라운드부터 '-'만
+
+    /* 오버레이 엘리먼트 */
+    const overlay = document.getElementById("overlay");
+    const startBtn = document.getElementById("start-btn");
+
+    /* 최고 라운드 표시 업데이트 */
+    function updateHighRoundDisplay() {
+      document.getElementById("high-round-display").textContent = "최고 라운드: " + highRound;
+    }
+    updateHighRoundDisplay();
+
+    /* 게임 시작(오버레이 숨기기 -> 라운드1부터) */
+    function startGameMode() {
+      overlay.style.display = "none";  // 오버레이 닫기
+      currentRound = 1;
+      lives = 5;
+      startRound();
+    }
+
+    /* 라운드 시작 */
+    function startRound() {
+      // 초기화
+      currentSelection = [];
+      expressionStr = "";
+      if (timerAnimationId) {
+        cancelAnimationFrame(timerAnimationId);
+        timerAnimationId = null;
+      }
+      updateHearts();
+
+      // 라운드별 시간 제한
+      timeLimit = (currentRound <= roundTimeThreshold) ? 10 : 15;
+
+      // 목표 숫자
+      let maxTarget;
+      if (currentRound <= 20) {
+        maxTarget = 20;
+      } else if (currentRound < 30) {
+        maxTarget = 30;
+      } else {
+        maxTarget = 40;
+      }
+      targetNumber = Math.floor(Math.random() * maxTarget) + 1;
+      document.getElementById("target-area").textContent = "목표 숫자: " + targetNumber;
+
+      // 숫자/토큰 배열
+      const validCombination = generateValidCombination(targetNumber);
+      let totalCount;
+      if (currentRound <= 20) {
+        totalCount = 12;
+      } else if (currentRound < 30) {
+        totalCount = 16;
+      } else {
+        totalCount = 20;
+      }
+      availableNumbers = validCombination.slice();
+      while (availableNumbers.length < totalCount) {
+        availableNumbers.push(Math.floor(Math.random() * 9) + 1);
+      }
+      availableNumbers.sort(() => Math.random() - 0.5);
+
+      // operatorMode(30라운드 이상)
+      let tokens = [];
+      if (currentRound >= operatorRound) {
+        tokens = availableNumbers.slice();
+        let operatorButtons = (currentRound < subtractionOnlyRound) ? ["+", "-", "x"] : ["-"];
+        const insertIndex = Math.floor(tokens.length / 2);
+        operatorButtons.forEach(op => {
+          tokens.splice(insertIndex, 0, op);
+        });
+      } else {
+        tokens = availableNumbers.slice();
+      }
+
+      // 그리드에 버튼 생성
+      const numbersContainer = document.getElementById("numbers-container");
+      numbersContainer.innerHTML = "";
+      let columns = (tokens.length <= 12) ? 3 : (tokens.length <= 16 ? 4 : 5);
+      numbersContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+
+      // 연산식 표시
+      const exprDisplay = document.getElementById("expression-display");
+      if (currentRound >= operatorRound) {
+        exprDisplay.style.display = "block";
+        exprDisplay.textContent = expressionStr;
+      } else {
+        exprDisplay.style.display = "none";
+      }
+
+      tokens.forEach(token => {
+        const btn = document.createElement("button");
+        btn.className = "token-btn";
+        btn.textContent = token;
+        btn.addEventListener("click", () => {
+          if (currentRound >= operatorRound) {
+            // 연산자 모드
+            expressionStr += token;
+            btn.disabled = true;
+            exprDisplay.textContent = expressionStr;
+          } else {
+            // 단순 숫자
+            currentSelection.push(token);
+            btn.disabled = true;
+          }
+        });
+        numbersContainer.appendChild(btn);
+      });
+
+      // 타이머 게이지
+      const timerFill = document.getElementById("timer-fill");
+      const timerText = document.getElementById("timer-text");
+      let startTime = Date.now();
+      let endTime = startTime + timeLimit * 1000;
+
+      function updateTimer() {
+        let now = Date.now();
+        let remaining = Math.max((endTime - now) / 1000, 0);
+        let percent = (remaining / timeLimit) * 100;
+        timerFill.style.width = percent + "%";
+        timerText.textContent = `남은 시간: ${Math.ceil(remaining)}초 | 라운드: ${currentRound}`;
+        if (remaining > 0) {
+          timerAnimationId = requestAnimationFrame(updateTimer);
+        } else {
+          timerAnimationId = null;
+          lives--;
+          if (lives <= 0) {
+            gameOver();
+          } else {
+            alert("시간 초과! 목숨이 감소했습니다.");
+            startRound();
+          }
+        }
+      }
+      timerAnimationId = requestAnimationFrame(updateTimer);
+    }
+
+    /* 제출 버튼 */
+    function submitSelection() {
+      if (timerAnimationId) {
+        cancelAnimationFrame(timerAnimationId);
+        timerAnimationId = null;
+      }
+      // 30라운드 미만 -> 합
+      if (currentRound < operatorRound) {
+        const sum = currentSelection.reduce((acc, cur) => acc + cur, 0);
+        checkAnswer(sum);
+      } else {
+        // 30라운드 이상 -> 식
+        let evalExpr = expressionStr.replace(/x/g, "*");
+        try {
+          let result = eval(evalExpr);
+          checkAnswer(result);
+        } catch(e) {
+          alert("올바른 수식을 만들지 못했습니다!");
+          lives--;
+          if (lives <= 0) {
+            gameOver();
+          } else {
+            startRound();
+          }
+        }
+      }
+    }
+
+    /* 정답 체크 */
+    function checkAnswer(value) {
+      if (value === targetNumber) {
+        alert("정답입니다! 다음 라운드로!");
+        currentRound++;
+        startRound();
+      } else {
+        lives--;
+        if (lives <= 0) {
+          gameOver();
+        } else {
+          alert("틀렸습니다! 목숨이 감소했습니다.");
+          startRound();
+        }
+      }
+    }
+
+    /* 게임 오버 -> 오버레이 표시, 다시하기 버튼 */
+    function gameOver() {
+      alert("게임 오버!");
+      if (currentRound > highRound) {
+        highRound = currentRound;
+        localStorage.setItem("highRound", highRound);
+      }
+      updateHighRoundDisplay();
+      // 컨테이너에 게임오버 표시 대신, 오버레이로 전환
+      document.getElementById("numbers-container").innerHTML = "<h2 style='color:#ff5722; grid-column:1/-1;'>게임 오버</h2>";
+      startBtn.textContent = "다시하기";
+      overlay.style.display = "flex";
+    }
+
+    /* 목숨(하트) 업데이트 */
+    function updateHearts() {
+      const heartsDisplay = document.getElementById("hearts-display");
+      heartsDisplay.innerHTML = "";
+      for (let i = 0; i < lives; i++) {
+        const heart = document.createElement("div");
+        heart.textContent = "❤️";
+        heartsDisplay.appendChild(하트);
+      }
+    }
+
+    /* 유효한 조합 생성 (기존 합산) */
+    function generateValidCombination(target) {
+      let possibleCounts = [];
+      for (let count = 2; count <= 4; count++) {
+        if (target >= count && target <= 9 * count) {
+          possibleCounts.push(count);
+        }
+      }
+      if (possibleCounts.length === 0) return [target];
+      const count = possibleCounts[Math.floor(Math.random() * possibleCounts.length)];
+      let combination = [];
+      let remaining = target;
+      for (let i = 0; i < count - 1; i++) {
+        let maxVal = Math.min(9, remaining - (count - i - 1));
+        let num = Math.floor(Math.random() * maxVal) + 1;
+        combination.push(num);
+        remaining -= num;
+      }
+      combination.push(remaining);
+      return combination;
+    }
+
+    /* 버튼 이벤트 */
+    document.getElementById("submit-btn").addEventListener("click", submitSelection);
+    startBtn.addEventListener("click", () => {
+      startGameMode();
+    });
+  </script>
+</body>
+</html>
