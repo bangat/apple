@@ -599,53 +599,78 @@
       bag.appendChild(itemDiv);
     }
     
-    function useInventoryItem(itemElement) {
-      const type = itemElement.dataset.type;
-      if (type === "mystery") {
-        let r = Math.random() * 100;
-        let randomEffect;
-        if (r < 10) { randomEffect = 0; }
-        else if (r < 20) { randomEffect = 1; }
-        else if (r < 30) { randomEffect = 4; }
-        else if (r < 38) { randomEffect = 2; }
-        else { randomEffect = 3; }
-    
-        let effectMessage = "";
-        switch(randomEffect) {
-          case 0:
-            effectMessage = "3x3 BOOM💣";
-            applyBombEffect();
-            break;
-          case 1:
-            effectMessage = "10초 시간정지";
-            freezeSound.play().catch(() => defaultSound.play());
-            pauseTimerForSeconds(10);
-            break;
-          case 2:
-            effectMessage = "시간 2배속";
-            speedSound.play().catch(() => defaultSound.play());
-            timerSpeed = 2;
-            setTimeout(() => { timerSpeed = 1; }, 10000);
-            break;
-          case 3:
-  effectMessage = "시간 -5초";
-  // 남은 시간이 20초보다 적으면 0초로 만들기
-  timer = Math.max(timer - 5, 0);
-  updateTimeBar();
-  break;
-          case 4:
-            effectMessage = "시간 +20초";
-            timeBonusSound.play().catch(() => defaultSound.play());
-            timer = Math.min(timer + 20, stageTimes[currentStage]);
-            updateTimeBar();
-            break;
+    // 확률 값을 상수로 정의 (전체 합 100)
+const PROB_BOMB = 25;       // 붐 효과 (30%)
+const PROB_FREEZE = 22;     // 10초 시간 정지 (30%)
+const PROB_TIME_PLUS = 23;  // 시간 +10초 (30%)
+const PROB_TIME_DOUBLE = 10; // 시간 2배속 (5%)
+const PROB_TIME_MINUS = 10;  // 시간 -10초 (5%)
+
+function useInventoryItem(itemElement) {
+  if (itemElement.dataset.type === "mystery") {
+    let r = Math.random() * 100;
+    let cumulative = 0;
+    let randomEffect;
+
+    cumulative += PROB_BOMB;
+    if (r < cumulative) {
+      randomEffect = 0; // 붐
+    } else {
+      cumulative += PROB_FREEZE;
+      if (r < cumulative) {
+        randomEffect = 1; // 10초 시간정지
+      } else {
+        cumulative += PROB_TIME_PLUS;
+        if (r < cumulative) {
+          randomEffect = 4; // 시간 +20초
+        } else {
+          cumulative += PROB_TIME_DOUBLE;
+          if (r < cumulative) {
+            randomEffect = 2; // 시간 2배속
+          } else {
+            randomEffect = 3; // 시간 -10초
+          }
         }
-        showComboEffect(effectMessage, 1500);
-        spawnParticles(window.innerWidth/2, window.innerHeight/2, 'skyblue', 25);
       }
-      itemElement.remove();
     }
-    
+
+    let effectMessage = "";
+    switch(randomEffect) {
+      case 0:
+        effectMessage = "3x3 BOOM💣";
+        applyBombEffect();
+        break;
+      case 1:
+        effectMessage = "10초 시간정지";
+        freezeSound.play().catch(() => defaultSound.play());
+        pauseTimerForSeconds(10);
+        break;
+      case 2:
+        effectMessage = "시간 2배속";
+        speedSound.play().catch(() => defaultSound.play());
+        timerSpeed = 2;
+        setTimeout(() => { timerSpeed = 1; }, 10000);
+        break;
+      case 3:
+        effectMessage = "시간 -10초";
+        timer = Math.max(timer - 10, 0);
+        updateTimeBar();
+        break;
+      case 4:
+        effectMessage = "시간 +10초";
+        timeBonusSound.play().catch(() => defaultSound.play());
+        timer = Math.min(timer + 10, stageTimes[currentStage]);
+        updateTimeBar();
+        break;
+    }
+    showComboEffect(effectMessage, 1500);
+    spawnParticles(window.innerWidth/2, window.innerHeight/2, 'skyblue', 25);
+  }
+  itemElement.remove();
+}
+
+
+
     function applyBombEffect() {
       gameActive = false;
       const board = document.getElementById("game-board");
