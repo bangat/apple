@@ -914,8 +914,8 @@ function useInventoryItem(itemElement) {
     document.getElementById("instructions-btn").addEventListener("click", () => {
       openModal("instructions");
     });
-    document.getElementById("inquiry-btn").addEventListener("click", () => {
-      openModal("inquiry");
+        document.getElementById("inquiry-btn").addEventListener("click", () => {
+      window.location.href = "jo.html";  // 목표숫자 조합 게임 페이지로 이동
     });
     
     function openModal(type) {
@@ -949,9 +949,7 @@ function useInventoryItem(itemElement) {
   updateBestScore(); // 최고 기록 불러오기 추가
   createBoard();
 });
-        document.getElementById("inquiry-btn").addEventListener("click", () => {
-      window.location.href = "jo.html";  // 목표숫자 조합 게임 페이지로 이동
-    });
+
   </script>
 </body>
 </html>
