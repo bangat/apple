@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>프리미엄 게임 모드</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>프리미엄 게임 모드(축소 레이아웃)</title>
   <style>
     /* 기본 초기화 */
     * {
-      margin: 0; 
-      padding: 0; 
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
+    /* 바탕 설정 */
     body {
       font-family: 'Helvetica Neue', sans-serif;
       background: linear-gradient(120deg, #fafafa, #f5f5f5);
@@ -19,24 +20,25 @@
       display: flex;
       flex-direction: column;
     }
-    /* 헤더: 타이머 게이지 */
+
+    /* 헤더(타이머 게이지) */
     .header {
       position: relative;
       width: 100%;
-      height: 72px;
+      height: 64px; /* 높이를 조금 줄임 */
       background: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       border-bottom: 1px solid #e0e0e0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      z-index: 10; /* 오버레이보다 뒤에 있어야 함 */
+      z-index: 10;
     }
     .timer-gauge {
       width: 90%;
-      height: 36px;
+      height: 30px; /* 기존 36px에서 축소 */
       background: #ddd;
-      border-radius: 18px;
+      border-radius: 15px; /* 높이에 맞춰 조정 */
       overflow: hidden;
       position: relative;
     }
@@ -48,23 +50,23 @@
     }
     .timer-text {
       position: absolute;
-      top: 6px; 
+      top: 4px; /* 살짝 내려서 여백 */
       left: 0;
       width: 100%;
       height: 100%;
-      line-height: 36px;
+      line-height: 30px;
       text-align: center;
-      font-size: 1rem;
+      font-size: 0.9rem; /* 폰트 크기 축소 */
       color: #fff;
       font-weight: bold;
     }
 
     /* 메인 컨테이너 */
     .container {
-      max-width: 500px;
+      max-width: 400px; /* 500px -> 400px */
       width: 95%;
-      margin: 20px auto;
-      padding: 20px;
+      margin: 10px auto; /* 20px -> 10px */
+      padding: 15px; /* 20px -> 15px */
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -73,7 +75,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      z-index: 5; /* 오버레이보다 뒤에 있어야 함 */
+      z-index: 5;
     }
 
     /* 오버레이 */
@@ -87,18 +89,18 @@
       display: flex; 
       align-items: center; 
       justify-content: center;
-      z-index: 9999; 
+      z-index: 9999;
     }
     #overlay-content {
       background: #fff;
-      padding: 30px 50px;
+      padding: 20px 30px; /* 크기 축소 */
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       text-align: center;
     }
     #start-btn {
-      font-size: 1.4rem;
-      padding: 15px 30px;
+      font-size: 1.2rem; /* 1.4rem -> 1.2rem */
+      padding: 10px 20px; /* 크기 축소 */
       background: #ff5722;
       color: #fff;
       border: none;
@@ -111,10 +113,10 @@
 
     /* 목표 숫자 영역 */
     .target-area {
-      font-size: 1.6rem;
+      font-size: 1.3rem; /* 1.6rem -> 1.3rem */
       text-align: center;
-      margin-bottom: 10px;
-      padding: 10px;
+      margin-bottom: 8px; /* 10px -> 8px */
+      padding: 8px;       /* 10px -> 8px */
       background: #fafafa;
       border: 2px solid #ff5722;
       border-radius: 10px;
@@ -124,41 +126,41 @@
     .hearts {
       display: flex;
       justify-content: center;
-      gap: 10px;
-      font-size: 1.6rem;
+      gap: 8px; /* 10px -> 8px */
+      font-size: 1.3rem; /* 1.6rem -> 1.3rem */
       margin-bottom: 10px;
     }
 
     /* 최고 라운드 */
     .high-round {
       text-align: center;
-      font-size: 1rem;
-      margin-bottom: 20px;
+      font-size: 0.9rem; /* 1rem -> 0.9rem */
+      margin-bottom: 15px; /* 20px -> 15px */
       color: #e64a19;
     }
 
     /* 연산식 표시 (30라운드 이상) */
     .expression-display {
       text-align: center;
-      font-size: 1.4rem;
-      margin-bottom: 20px;
-      min-height: 30px;
+      font-size: 1.2rem; /* 1.4rem -> 1.2rem */
+      margin-bottom: 15px; /* 20px -> 15px */
+      min-height: 25px; /* 30px -> 25px */
       color: #444;
     }
 
     /* 숫자/토큰 버튼 그리드 */
     .numbers-grid {
       display: grid;
-      gap: 15px;
-      margin-bottom: 20px;
+      gap: 10px; /* 15px -> 10px */
+      margin-bottom: 15px; /* 20px -> 15px */
       flex: 1;
     }
     .token-btn {
       background: #f5f5f5;
       border: none;
       border-radius: 10px;
-      font-size: 1.6rem;
-      padding: 15px;
+      font-size: 1.2rem; /* 1.6rem -> 1.2rem */
+      padding: 12px;     /* 15px -> 12px */
       cursor: pointer;
       transition: background 0.3s;
     }
@@ -177,12 +179,12 @@
       color: #fff;
       border: none;
       border-radius: 10px;
-      font-size: 1.4rem;
-      padding: 15px;
+      font-size: 1.2rem; /* 1.4rem -> 1.2rem */
+      padding: 12px;     /* 15px -> 12px */
       cursor: pointer;
       transition: background 0.3s;
       width: 60%;
-      max-width: 300px;
+      max-width: 280px; /* 300px -> 280px */
       margin: 0 auto 10px auto;
     }
     .submit-btn:hover {
@@ -191,38 +193,23 @@
 
     /* 작은 화면(모바일) 대응 */
     @media (max-width: 480px) {
-      .timer-text {
-        font-size: 0.9rem;
-      }
-      .container {
-        padding: 15px;
-      }
-      .target-area {
-        font-size: 1.4rem;
-      }
-      .hearts {
-        font-size: 1.4rem;
-      }
-      .high-round {
-        font-size: 0.9rem;
-      }
-      .expression-display {
-        font-size: 1.3rem;
-      }
-      .numbers-grid {
-        gap: 10px;
-      }
+      .timer-text { font-size: 0.85rem; }
+      .target-area { font-size: 1.2rem; }
+      .hearts { font-size: 1.2rem; }
+      .high-round { font-size: 0.85rem; }
+      .expression-display { font-size: 1.1rem; }
+      .numbers-grid { gap: 8px; }
       .token-btn {
-        font-size: 1.4rem;
-        padding: 12px;
+        font-size: 1.1rem;
+        padding: 10px;
       }
       .submit-btn {
-        font-size: 1.2rem;
-        padding: 12px;
+        font-size: 1.1rem;
+        padding: 10px;
       }
       #start-btn {
-        font-size: 1.2rem;
-        padding: 12px 20px;
+        font-size: 1.1rem;
+        padding: 10px 16px;
       }
     }
   </style>
@@ -254,7 +241,7 @@
     <!-- 최고 라운드 표시 -->
     <div class="high-round" id="high-round-display">최고 라운드: 0</div>
     
-    <!-- (30라운드 이상인 경우) 연산식 표시 영역 -->
+    <!-- (30라운드 이상) 연산식 표시 영역 -->
     <div class="expression-display" id="expression-display"></div>
     
     <!-- 숫자/토큰 버튼 그리드 -->
