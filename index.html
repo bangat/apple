@@ -344,7 +344,7 @@
   <div id="overlay">
     <button id="start-btn">게임시작</button>
     <button id="instructions-btn">게임방법</button>
-    <button id="inquiry-btn">문의하기</button>
+    <button id="inquiry-btn">다른게임</button>
   </div>
   
   <!-- 중앙 모달 -->
@@ -949,6 +949,9 @@ function useInventoryItem(itemElement) {
   updateBestScore(); // 최고 기록 불러오기 추가
   createBoard();
 });
+        document.getElementById("inquiry-btn").addEventListener("click", () => {
+      window.location.href = "jo.html";  // 목표숫자 조합 게임 페이지로 이동
+    });
   </script>
 </body>
 </html>
