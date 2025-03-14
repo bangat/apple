@@ -677,38 +677,47 @@ function useInventoryItem(itemElement) {
       board.style.cursor = "crosshair";
       board.addEventListener("click", bombTargetSelection);
     }
+
+
     function bombTargetSelection(event) {
-      const board = document.getElementById("game-board");
-      board.style.cursor = "default";
-      let apple = event.target;
-      if (!apple.classList.contains("apple")) {
-        showComboEffect("숫자를 선택하세요!", 1500);
-        return;
-      }
-      bombSound.play().catch(() => defaultSound.play());
-      const index = parseInt(apple.dataset.index, 10);
-      const stage = stageSizes[currentStage];
-      const cols = stage.cols;
-      const row = Math.floor(index / cols);
-      const col = index % cols;
-      const rect = apple.getBoundingClientRect();
-      spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, 'red', 30);
-      const allApples = document.querySelectorAll("#game-board .apple");
-      allApples.forEach(a => {
-        const i = parseInt(a.dataset.index, 10);
-        const r = Math.floor(i / cols);
-        const c = i % cols;
-        if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
-          a.style.opacity = "0";
-          a.style.pointerEvents = "none";
-        }
-      });
-      score += 10;
-      document.getElementById("score").textContent = score;
-      board.removeEventListener("click", bombTargetSelection);
-      gameActive = true;
-      checkStageClear();
+  const board = document.getElementById("game-board");
+  board.style.cursor = "default";
+  let apple = event.target;
+  if (!apple.classList.contains("apple")) {
+    showComboEffect("숫자를 선택하세요!", 1500);
+    return;
+  }
+  bombSound.play().catch(() => defaultSound.play());
+  const index = parseInt(apple.dataset.index, 10);
+  const stage = stageSizes[currentStage];
+  const cols = stage.cols;
+  const row = Math.floor(index / cols);
+  const col = index % cols;
+  const rect = apple.getBoundingClientRect();
+  spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, 'red', 30);
+  
+  // 제거되는 사과 개수를 세기 위한 변수
+  let removedCount = 0;
+  const allApples = document.querySelectorAll("#game-board .apple");
+  allApples.forEach(a => {
+    const i = parseInt(a.dataset.index, 10);
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
+      a.style.opacity = "0";
+      a.style.pointerEvents = "none";
+      removedCount++; // 제거된 사과 개수 증가
     }
+  });
+  
+  // 기존의 선택 효과와 동일하게 사과 한 개당 2점씩 누적
+  score += removedCount * 2;
+  document.getElementById("score").textContent = score;
+  
+  board.removeEventListener("click", bombTargetSelection);
+  gameActive = true;
+  checkStageClear();
+}
     
     function resetApplesOnBoard() {
       const board = document.getElementById("game-board");
