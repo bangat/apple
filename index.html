@@ -599,7 +599,7 @@
     function useInventoryItem(itemElement) {
       const type = itemElement.dataset.type;
       if (type === "mystery") {
-        let r = Math.random() * 50;
+        let r = Math.random() * 100;
         let randomEffect;
         if (r < 10) { randomEffect = 0; }
         else if (r < 20) { randomEffect = 1; }
@@ -625,9 +625,9 @@
             setTimeout(() => { timerSpeed = 1; }, 10000);
             break;
           case 3:
-  effectMessage = "시간 -20초";
+  effectMessage = "시간 -10초";
   // 남은 시간이 20초보다 적으면 0초로 만들기
-  timer = Math.max(timer - 20, 0);
+  timer = Math.max(timer - 10, 0);
   updateTimeBar();
   break;
           case 4:
@@ -637,7 +637,7 @@
             updateTimeBar();
             break;
         }
-        showComboEffect(effectMessage, 2000);
+        showComboEffect(effectMessage, 1500);
         spawnParticles(window.innerWidth/2, window.innerHeight/2, 'skyblue', 25);
       }
       itemElement.remove();
