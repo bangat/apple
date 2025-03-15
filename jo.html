@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, viewport-fit=cover" />
   <title>숫자맞춰</title>
   <style>
     /* 기본 초기화 */
@@ -11,10 +11,11 @@
       padding: 0;
       box-sizing: border-box;
     }
+
     /* 바탕 설정 */
     body {
       font-family: 'Helvetica Neue', sans-serif;
-      background: linear-gradient(120deg, #fafafa, #f5f5f5);
+      background: linear-gradient(120deg, #f0f0f0, #fafafa);
       color: #333;
       min-height: 100vh;
       display: flex;
@@ -23,16 +24,19 @@
 
     /* 헤더(타이머 게이지) */
     .header {
-      position: relative;
       width: 100%;
-      height: 64px;
-      background: #ffffff;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      z-index: 10;
+      padding: 10px 0;
+    }
+    .header-inner {
+      max-width: 420px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-bottom: 1px solid #e0e0e0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      z-index: 10;
+      position: relative;
     }
     .timer-gauge {
       width: 90%;
@@ -63,22 +67,114 @@
 
     /* 메인 컨테이너 */
     .container {
-      max-width: 400px;
+      max-width: 420px;
       width: 95%;
-      margin: 10px auto;
+      margin: 20px auto;
       padding: 15px;
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      position: relative;
-      flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      z-index: 5;
+      justify-content: space-between;
     }
 
-    /* 오버레이 */
+    /* 라운드 & 최고 라운드 표시 */
+    .round-info {
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 10px;
+      color: #e64a19;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .round-info span {
+      font-weight: bold;
+    }
+
+    /* 목표 숫자 & 하트 */
+    .target-hearts {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .target-area {
+      font-size: 1.2rem;
+      text-align: center;
+      padding: 8px 12px;
+      background: #fafafa;
+      border: 2px solid #ff5722;
+      border-radius: 10px;
+    }
+    .hearts {
+      display: flex;
+      gap: 6px;
+      font-size: 1.3rem;
+    }
+
+    /* (30라운드 이상) 연산식 표시 영역 */
+    .expression-display {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      min-height: 25px;
+      color: #444;
+    }
+
+    /* 숫자/토큰 버튼 그리드 */
+    .numbers-grid {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 15px;
+      /* 자동으로 너비 맞춰 반응형 그리드 */
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      justify-items: center;
+    }
+    .token-btn {
+      background: #f5f5f5;
+      border: none;
+      border-radius: 10px;
+      width: 60px;
+      height: 40px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+    }
+    .token-btn:hover {
+      background: #e0e0e0;
+      transform: scale(1.05);
+    }
+    .token-btn:disabled {
+      background: #cccccc;
+      color: #777;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 제출 버튼 */
+    .submit-btn {
+      background: #ff5722;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      padding: 10px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
+      width: 60%;
+      max-width: 280px;
+      margin: 0 auto 10px auto;
+    }
+    .submit-btn:hover {
+      background: #e64a19;
+      transform: scale(1.02);
+    }
+
+    /* 오버레이 (처음 화면 & 게임오버 시 표시) */
     #overlay {
       position: fixed;
       top: 0; 
@@ -97,6 +193,8 @@
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       text-align: center;
+      max-width: 320px;
+      width: 80%;
     }
     #start-btn {
       font-size: 1.2rem;
@@ -106,102 +204,11 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      transition: background 0.3s, transform 0.1s;
     }
     #start-btn:hover {
       background: #e64a19;
-    }
-
-    /* 라운드 & 최고 라운드 표시를 한 줄에 배치 */
-    .round-info {
-      text-align: center;
-      font-size: 1rem;
-      margin-bottom: 10px;
-      color: #e64a19;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px; /* 라운드와 최고 라운드 사이 간격 */
-    }
-    .round-info span {
-      font-weight: bold;
-    }
-
-    /* 목표 숫자와 하트를 한 줄에 배치 */
-    .target-hearts {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .target-area {
-      font-size: 1.3rem;
-      text-align: center;
-      padding: 8px;
-      background: #fafafa;
-      border: 2px solid #ff5722;
-      border-radius: 10px;
-    }
-    .hearts {
-      display: flex;
-      gap: 6px;
-      font-size: 1.3rem;
-    }
-
-    /* 연산식 표시 (30라운드 이상) */
-    .expression-display {
-      text-align: center;
-      font-size: 1.2rem;
-      margin-bottom: 15px;
-      min-height: 25px;
-      color: #444;
-    }
-
-    /* 숫자/토큰 버튼 그리드 */
-    .numbers-grid {
-      display: grid;
-      gap: 8px; /* 더 줄임 */
-      margin-bottom: 15px;
-      flex: 1;
-    }
-
-
-    .token-btn {
-      background: #f5f5f5;
-      border: none;
-      border-radius: 10px;
-width: 40px;
-  height: 40px;
-  font-size: 0.8rem;
-      padding: 5px;    /* 12px -> 8px */
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .token-btn:hover {
-      background: #e0e0e0;
-    }
-    .token-btn:disabled {
-      background: #cccccc;
-      color: #777;
-      cursor: not-allowed;
-    }
-
-    /* 제출 버튼 */
-    .submit-btn {
-      background: #ff5722;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 1.1rem; /* 1.2rem -> 1.1rem */
-      padding: 10px;     /* 12px -> 10px */
-      cursor: pointer;
-      transition: background 0.3s;
-      width: 60%;
-      max-width: 280px;
-      margin: 0 auto 10px auto;
-    }
-    .submit-btn:hover {
-      background: #e64a19;
+      transform: scale(1.05);
     }
 
     /* 작은 화면(모바일) 대응 */
@@ -214,7 +221,7 @@ width: 40px;
         gap: 8px;
       }
       .target-area {
-        font-size: 1.1rem;
+        font-size: 1rem;
       }
       .hearts {
         font-size: 1.1rem;
@@ -222,12 +229,10 @@ width: 40px;
       .expression-display {
         font-size: 1.1rem;
       }
-      .numbers-grid {
-        gap: 6px;
-      }
       .token-btn {
         font-size: 0.9rem;
-        padding: 6px;
+        width: 50px;
+        height: 36px;
       }
       .submit-btn {
         font-size: 1rem;
@@ -244,15 +249,17 @@ width: 40px;
   <!-- 오버레이 (처음 화면 & 게임오버 시 표시) -->
   <div id="overlay">
     <div id="overlay-content">
-      <button id="start-btn">게임시작</button>
+      <button id="start-btn">게임 시작</button>
     </div>
   </div>
 
   <!-- 헤더: 타이머 게이지 -->
   <header class="header">
-    <div class="timer-gauge">
-      <div class="timer-fill" id="timer-fill"></div>
-      <div class="timer-text" id="timer-text">남은 시간: 0초 | 라운드: 0</div>
+    <div class="header-inner">
+      <div class="timer-gauge">
+        <div class="timer-fill" id="timer-fill"></div>
+        <div class="timer-text" id="timer-text">남은 시간: 0초 | 라운드: 0</div>
+      </div>
     </div>
   </header>
 
@@ -282,18 +289,22 @@ width: 40px;
   </div>
 
   <script>
-    /* ======== 전역 변수 및 로직 (기존) ======== */
+    /* ======== 전역 변수 및 로직 ======== */
     let currentRound = 1;
     let lives = 5;
     let targetNumber = 0;
-    let availableNumbers = [];
+
+    // 30라운드 미만에서는 단순 숫자 선택을 담아둘 배열
     let currentSelection = [];
-    let expressionStr = "";
+
+    // 30라운드 이상에서는 연산자 모드이므로, 숫자와 연산자 토큰을 함께 담아둘 배열
+    let expressionTokens = [];
+
     let timeLimit = 10;
     let timerAnimationId = null;
     let highRound = Number(localStorage.getItem("highRound")) || 0;
 
-    const roundTimeThreshold = 20;  // 20라운드까지 10초, 이후 15초
+    const roundTimeThreshold = 20;   // 20라운드까지 10초, 이후 15초
     const operatorRound = 30;       // 30라운드부터 연산자 모드
     const subtractionOnlyRound = 40; // 40라운드부터 '-'만
 
@@ -308,6 +319,7 @@ width: 40px;
     const numbersContainer = document.getElementById("numbers-container");
     const timerFill = document.getElementById("timer-fill");
     const timerText = document.getElementById("timer-text");
+    const submitBtn = document.getElementById("submit-btn");
 
     // 최고 라운드 표시 업데이트
     function updateHighRoundDisplay() {
@@ -322,9 +334,12 @@ width: 40px;
       startRound();
     }
 
+    // 라운드 시작
     function startRound() {
+      // 각 라운드 시작 시 배열들 초기화
       currentSelection = [];
-      expressionStr = "";
+      expressionTokens = [];
+
       cancelAnimationFrame(timerAnimationId);
       updateHearts();
 
@@ -347,24 +362,34 @@ width: 40px;
       targetNumber = Math.floor(Math.random() * maxTarget) + 1;
       targetArea.textContent = "목표 숫자: " + targetNumber;
 
-      // 숫자(토큰) 배열
+      // (30라운드 이상) 연산식 표시 초기화
+      if (currentRound >= operatorRound) {
+        expressionDisplay.style.display = "block";
+        expressionDisplay.textContent = "";
+      } else {
+        expressionDisplay.style.display = "none";
+      }
+
+      // 숫자(토큰) 배열 만들기
       const validCombination = generateValidCombination(targetNumber);
       let totalCount;
       if (currentRound <= 20) totalCount = 12;
       else if (currentRound < 30) totalCount = 16;
       else totalCount = 20;
 
-      availableNumbers = validCombination.slice();
+      let availableNumbers = validCombination.slice();
       while (availableNumbers.length < totalCount) {
         availableNumbers.push(Math.floor(Math.random() * 9) + 1);
       }
       availableNumbers.sort(() => Math.random() - 0.5);
 
-      // 연산자 모드
+      // (30라운드 이상)에는 연산자 버튼도 삽입
       let tokens = [];
       if (currentRound >= operatorRound) {
         tokens = availableNumbers.slice();
+        // 40라운드 이상이면 '-'만, 그 미만이면 + - x
         let operatorButtons = (currentRound < subtractionOnlyRound) ? ["+", "-", "x"] : ["-"];
+        // 대략 중간쯤에 연산자들을 삽입
         const insertIndex = Math.floor(tokens.length / 2);
         operatorButtons.forEach(op => {
           tokens.splice(insertIndex, 0, op);
@@ -373,31 +398,21 @@ width: 40px;
         tokens = availableNumbers.slice();
       }
 
-      // 숫자 버튼 그리드 생성
+      // 숫자/연산자 버튼 그리드 생성
       numbersContainer.innerHTML = "";
-      let columns = (tokens.length <= 12) ? 3 : (tokens.length <= 16 ? 4 : 5);
-      numbersContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-
-      // (30라운드 이상) 연산식 표시
-      if (currentRound >= operatorRound) {
-        expressionDisplay.style.display = "block";
-        expressionDisplay.textContent = expressionStr;
-      } else {
-        expressionDisplay.style.display = "none";
-      }
-
       tokens.forEach(token => {
         const btn = document.createElement("button");
         btn.className = "token-btn";
         btn.textContent = token;
         btn.addEventListener("click", () => {
+          btn.disabled = true;
           if (currentRound >= operatorRound) {
-            expressionStr += token;
-            btn.disabled = true;
-            expressionDisplay.textContent = expressionStr;
+            // 30라운드 이상: 연산자 모드
+            expressionTokens.push(token);
+            expressionDisplay.textContent = expressionTokens.join(" ");
           } else {
+            // 30라운드 미만: 단순 숫자 합
             currentSelection.push(token);
-            btn.disabled = true;
           }
         });
         numbersContainer.appendChild(btn);
@@ -415,6 +430,7 @@ width: 40px;
         if (remaining > 0) {
           timerAnimationId = requestAnimationFrame(updateTimer);
         } else {
+          // 시간 초과 시
           lives--;
           if (lives <= 0) {
             gameOver();
@@ -427,46 +443,59 @@ width: 40px;
       timerAnimationId = requestAnimationFrame(updateTimer);
     }
 
+    // 제출 버튼 동작
     function submitSelection() {
       cancelAnimationFrame(timerAnimationId);
-      // (30라운드 이상) 식 평가
-      if (currentRound >= operatorRound) {
-        let evalExpr = expressionStr.replace(/x/g, "*");
+
+      // 30라운드 미만은 기존처럼 단순 합
+      if (currentRound < operatorRound) {
+        const sum = currentSelection.reduce((acc, cur) => acc + Number(cur), 0);
+        checkAnswer(sum);
+        return;
+      }
+
+      // 30라운드 이상은 연산자 모드
+      const hasOperator = expressionTokens.some(t => t === "+" || t === "-" || t === "x");
+      // 연산자가 하나도 없다면 -> 모두 더하기
+      if (!hasOperator) {
+        const sum = expressionTokens.reduce((acc, cur) => acc + Number(cur), 0);
+        checkAnswer(sum);
+      } else {
+        // 식으로 해석
+        let expressionStr = expressionTokens.map(t => t === "x" ? "*" : t).join("");
         try {
-          let result = eval(evalExpr);
+          let result = eval(expressionStr);
           checkAnswer(result);
         } catch(e) {
-          alert("올바른 수식을 만들지 못했습니다!");
-          lives--;
-          if (lives <= 0) {
-            gameOver();
-          } else {
-            startRound();
-          }
+          alert("올바른 식을 만들지 못했습니다!");
+          loseLifeAndContinue();
         }
-      } else {
-        // (30라운드 미만) 단순 합
-        const sum = currentSelection.reduce((acc, cur) => acc + cur, 0);
-        checkAnswer(sum);
       }
     }
 
+    // 답안 확인
     function checkAnswer(value) {
       if (value === targetNumber) {
-        alert("정답입니다! 다음 라운드로!");
+        alert("정답입니다! 다음 라운드로 이동합니다.");
         currentRound++;
         startRound();
       } else {
-        lives--;
-        if (lives <= 0) {
-          gameOver();
-        } else {
-          alert("틀렸습니다! 목숨이 감소했습니다.");
-          startRound();
-        }
+        loseLifeAndContinue();
       }
     }
 
+    // 목숨 감소 & 재시작
+    function loseLifeAndContinue() {
+      lives--;
+      if (lives <= 0) {
+        gameOver();
+      } else {
+        alert("틀렸습니다! 목숨이 감소했습니다.");
+        startRound();
+      }
+    }
+
+    // 게임 종료
     function gameOver() {
       alert("게임 오버!");
       if (currentRound > highRound) {
@@ -479,6 +508,7 @@ width: 40px;
       overlay.style.display = "flex";
     }
 
+    // 하트(목숨) UI 갱신
     function updateHearts() {
       heartsDisplay.innerHTML = "";
       for (let i = 0; i < lives; i++) {
@@ -488,6 +518,7 @@ width: 40px;
       }
     }
 
+    // 목표 숫자 조합 만들기 (2~4개 숫자의 합으로 구성)
     function generateValidCombination(target) {
       let possibleCounts = [];
       for (let count = 2; count <= 4; count++) {
@@ -495,7 +526,9 @@ width: 40px;
           possibleCounts.push(count);
         }
       }
+      // 만약 target이 1 같은 경우 2~4개로 쪼개기 힘들다면, 그냥 [target] 리턴
       if (possibleCounts.length === 0) return [target];
+
       const count = possibleCounts[Math.floor(Math.random() * possibleCounts.length)];
       let combination = [];
       let remaining = target;
@@ -510,10 +543,8 @@ width: 40px;
     }
 
     // 이벤트 등록
-    document.getElementById("submit-btn").addEventListener("click", submitSelection);
-    startBtn.addEventListener("click", () => {
-      startGameMode();
-    });
+    submitBtn.addEventListener("click", submitSelection);
+    startBtn.addEventListener("click", startGameMode);
   </script>
 </body>
 </html>
