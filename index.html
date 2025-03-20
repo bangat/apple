@@ -1,15 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <meta charset="UTF-8" />
   <!-- iOS 노치 고려 -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>씹드래그</title>
+  <title>씹드래그 - AI 대결 모드</title>
   <style>
     /* 기본 리셋 */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,12 +19,10 @@
       overflow: hidden;
       touch-action: none;
       position: relative;
-      /* iOS 안전 영역 적용 */
       padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
     }
-    
-    /* 상단 헤더: 좌측(홈, 리셋), 중앙(시간바 및 남은 시간), 우측(임의 이모지) */
+    /* 상단 헤더 */
     #header {
       background: #f5f5f5;
       padding: 8px;
@@ -41,7 +37,6 @@
       display: flex;
       align-items: center;
     }
-    /* 왼쪽: 홈, 리셋 버튼 */
     #header .left-section button {
       background: none;
       border: none;
@@ -50,14 +45,14 @@
       margin-right: 10px;
     }
     /* 중앙: 시간바 */
-#time-bar-container {
-  position: relative;
-  width: 200px;   /* 기존 150px보다 늘림 */
-  height: 25px;   /* 기존 18px보다 높임 */
-  background: #ccc;
-  border-radius: 12px;  /* 높이에 맞춰 조정 */
-  overflow: hidden;
-}
+    #time-bar-container {
+      position: relative;
+      width: 200px;
+      height: 25px;
+      background: #ccc;
+      border-radius: 12px;
+      overflow: hidden;
+    }
     #time-bar-fill {
       position: absolute;
       left: 0;
@@ -76,12 +71,11 @@
       font-weight: bold;
       font-size: 0.9rem;
     }
-    /* 오른쪽: 임의 이모지 (예시로 🎮) */
+    /* 오른쪽: 임의 이모지 */
     #header .right-section {
       font-size: 1.5rem;
     }
-    
-    /* 하단 영역: 점수 및 최고 점수 */
+    /* 하단 영역: 플레이어 점수, AI 점수, 최고 기록 */
     #bottom-display {
       background: #f5f5f5;
       color: #333;
@@ -103,7 +97,6 @@
       color: #ff5722;
       font-weight: bold;
     }
-    
     /* 게임 컨테이너 */
     #game-container {
       width: 90%;
@@ -115,7 +108,7 @@
       background: #fff;
       position: relative;
     }
-    /* 스테이지 영역: 라운드표시와 아이템 가방 통합 */
+    /* 스테이지 영역 */
     #stage-indicator {
       display: flex;
       justify-content: space-between;
@@ -129,11 +122,10 @@
       text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
       margin-bottom: 5px;
     }
-    /* 라운드 표시: 왼쪽 정렬 */
     #round-indicator {
       text-align: left;
     }
-    /* 아이템 가방: 오른쪽에 최대 6개 아이콘 (기본 크기 25px x 25px) */
+    /* 아이템 가방 */
     #item-bag {
       display: flex;
       gap: 5px;
@@ -152,7 +144,6 @@
       font-size: 1.3rem;
       cursor: pointer;
     }
-    
     /* 게임보드 */
     #game-board {
       display: grid;
@@ -161,17 +152,16 @@
       padding: 10px 0;
     }
     /* 사과 */
-.apple {
-  aspect-ratio: 1;
-  border-radius: 50%;
-  user-select: none;
-  transition: opacity 0.5s;
-  max-width: 40px;  /* 최대 가로 크기를 50px로 제한 */
-  max-height: 40px; /* 최대 세로 크기를 50px로 제한 */
-  position: relative;
-  overflow: hidden;
-}
-
+    .apple {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      user-select: none;
+      transition: opacity 0.5s;
+      max-width: 40px;
+      max-height: 40px;
+      position: relative;
+      overflow: hidden;
+    }
     .apple span {
       position: absolute;
       top: 50%;
@@ -189,7 +179,6 @@
       pointer-events: none;
       background: transparent;
     }
-    
     /* 오버레이 및 모달 */
     #overlay {
       position: fixed;
@@ -253,7 +242,6 @@
       font-weight: bold;
       cursor: pointer;
     }
-    
     /* 콤보 이펙트 */
     #combo-effect {
       position: fixed;
@@ -322,31 +310,28 @@
       <span>🎮</span>
     </div>
   </div>
-  
-  <!-- (기존 아이템 컨테이너는 제거됨) -->
-  
+
   <!-- 게임 컨테이너 -->
   <div id="game-container">
-    <!-- 스테이지 영역: 좌측에 라운드 표기, 우측에 아이템 가방 (최대 6개) -->
     <div id="stage-indicator">
       <div id="round-indicator">1R</div>
       <div id="item-bag"></div>
     </div>
     <div id="game-board"></div>
   </div>
-  
-  <!-- 하단 영역: 점수 및 최고 점수 -->
+
+  <!-- 하단 영역: 플레이어 점수, AI 점수, 최고 기록 -->
   <div id="bottom-display">
-    점수: <span id="score">0</span> | 최고 기록: <span id="best-score">0</span>
+    플레이어: <span id="score">0</span> | AI: <span id="aiScore">0</span> | 최고 기록: <span id="best-score">0</span>
   </div>
-  
+
   <!-- 오버레이 -->
   <div id="overlay">
     <button id="start-btn">게임시작</button>
     <button id="instructions-btn">게임방법</button>
     <button id="inquiry-btn">다른게임</button>
   </div>
-  
+
   <!-- 중앙 모달 -->
   <div id="modal" class="modal">
     <div class="modal-content">
@@ -354,15 +339,14 @@
       <div id="modal-body"></div>
     </div>
   </div>
-  
+
   <!-- 콤보 이펙트 -->
   <div id="combo-effect"></div>
-  
   <!-- 파티클 컨테이너 -->
   <div id="particle-container"></div>
-  
+
   <script>
-    /*************** JavaScript 코드 (기존 코드 사용) ****************/
+    /*************** 기존 코드 + AI 대결 모드 + 자동 재생성 추가 ***************/
     // 각 스테이지별 시간 (초)
     const stageTimes = [60, 80, 100, 140, 180];
     // 스테이지별 보드 크기
@@ -376,7 +360,8 @@
     let currentStage = 0;
     let boardSize;
     let selectedApples = [];
-    let score = 0;
+    let score = 0;    // 플레이어 점수
+    let aiScore = 0;  // AI 점수
     let timer = stageTimes[0];
     let timerInterval;
     let gameActive = false;
@@ -385,8 +370,12 @@
     let comboCount = 0;
     let lastComboTime = 0;
     let timerPaused = false;
-    
-    // 사운드 (URL은 확인 후 사용)
+
+    // AI 관련 변수
+    let aiInterval;
+    const aiSpeedLevels = [3000, 2500, 2000, 1800, 1500];
+
+    // 사운드 (URL 필요시 교체)
     const removeSound = new Audio('https://example.com/remove.mp3');
     const defaultSound = new Audio('https://blog.kakaocdn.net/dn/kPq6B/btsMHdSCEoa/id4EBuKeTLDdF6iJwxhKZ0/0279-%EB%A7%88%EC%9A%B0%EC%8A%A4%20%ED%81%B4%EB%A6%AD%EC%9D%8C.mp3?attach=1&knm=tfile.mp3');
     const comboSound  = new Audio('https://example.com/combo.mp3');
@@ -397,9 +386,9 @@
     const freezeSound = new Audio('https://blog.kakaocdn.net/dn/bnUeZU/btsMKPQ2fE8/TpQ0McWbkcv8zgfYJE8uU0/%EC%8B%9C%EA%B0%84%2B.mp3?attach=1&knm=tfile.mp3');
     const stageClearSound = new Audio('https://blog.kakaocdn.net/dn/1JneS/btsMKdrmUim/ObcQyRksanAuVwpTSoY5X1/%ED%81%B4%EB%A6%AC%EC%96%B4%EC%82%AC%EC%9A%B4%EB%93%9C.mp3?attach=1&knm=tfile.mp3');
     const stageFailSound  = new Audio('https://blog.kakaocdn.net/dn/caxkR1/btsMHuzX7Fn/5XRrr1Crt0GT4iNPpHp9A0/%EA%B2%8C%EC%9E%84%EC%98%A4%EB%B2%84.mp3?attach=1&knm=tfile.mp3');
-    
+
     const pastelColors = ["#ffd1dc", "#c1ffc1", "#fff5ba", "#bae1ff", "#f2bbff"];
-    
+
     function updateBestScore() {
       let best = localStorage.getItem("bestScore") || 0;
       if (score > best) {
@@ -408,21 +397,21 @@
       }
       document.getElementById("best-score").textContent = best;
     }
-    
+
     function updateTimeBar() {
       const maxTime = stageTimes[currentStage];
       const ratio = timer / maxTime;
       document.getElementById("time-bar-fill").style.width = (ratio * 100) + "%";
       document.getElementById("time-text").textContent = Math.floor(timer);
     }
-    
+
     function createBoard() {
       gameActive = false;
       timer = stageTimes[currentStage];
       updateTimeBar();
       comboCount = 0;
       lastComboTime = 0;
-      // 아이템 가방 내용은 초기화하지 않고 누적(아이템은 콤보 시 추가)
+
       const board = document.getElementById("game-board");
       board.innerHTML = "";
       const stage = stageSizes[currentStage];
@@ -430,6 +419,7 @@
       const cols = stage.cols;
       board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
       boardSize = rows * cols;
+
       let appleCount = boardSize;
       let hasBlank = false;
       if (boardSize % 2 !== 0) {
@@ -454,16 +444,16 @@
         blankDiv.classList.add("blank");
         board.appendChild(blankDiv);
       }
-      // 라운드 영역 업데이트: 현재 스테이지 번호를 "1R", "2R", … 로 표기
       document.getElementById("round-indicator").textContent = `${currentStage + 1}R`;
     }
-    
+
     function startGame() {
       gameActive = true;
       document.getElementById("game-container").style.filter = "none";
       startTimer();
+      startAi();
     }
-    
+
     function startTimer() {
       clearInterval(timerInterval);
       timerInterval = setInterval(() => {
@@ -474,14 +464,15 @@
           updateTimeBar();
         } else {
           clearInterval(timerInterval);
+          clearInterval(aiInterval);
           gameActive = false;
           stageFailSound.play().catch(() => defaultSound.play());
           updateBestScore();
-          showModalMessage(`⏰ 게임 종료! 최종 점수: ${score}`);
+          determineWinner();
         }
       }, 1000);
     }
-    
+
     function generateNumbers(count) {
       let numbers = [];
       for (let i = 0; i < count / 2; i++) {
@@ -491,7 +482,7 @@
       }
       return numbers.sort(() => Math.random() - 0.5);
     }
-    
+
     function spawnParticles(x, y, color = 'yellow', count = 15) {
       const container = document.getElementById("particle-container");
       for (let i = 0; i < count; i++) {
@@ -508,7 +499,7 @@
         setTimeout(() => { container.removeChild(p); }, 1000);
       }
     }
-    
+
     function startSelection(e) {
       if (!gameActive) return;
       e.preventDefault();
@@ -518,6 +509,7 @@
       document.addEventListener("touchmove", selectApple);
       document.addEventListener("touchend", endSelection);
     }
+
     function selectApple(e) {
       e.preventDefault();
       const touch = e.touches ? e.touches[0] : e;
@@ -529,12 +521,14 @@
         triggerVibration(apple.dataset.index);
       }
     }
+
     function triggerVibration(index) {
       if (!vibratedApples.has(index)) {
         vibratedApples.add(index);
         if (navigator.vibrate) navigator.vibrate(50);
       }
     }
+
     function endSelection() {
       document.removeEventListener("touchmove", selectApple);
       document.removeEventListener("touchend", endSelection);
@@ -564,7 +558,7 @@
         }
       }
     }
-    
+
     function handleCombo() {
       const now = Date.now();
       if (now - lastComboTime <= 4000) { comboCount++; }
@@ -579,14 +573,15 @@
         comboCount = 0;
       }
     }
+
     function showComboEffect(message, duration) {
       const comboElement = document.getElementById("combo-effect");
       comboElement.textContent = message;
       comboElement.style.opacity = "1";
       setTimeout(() => { comboElement.style.opacity = "0"; }, duration);
     }
-    
-    // 아이템 가방은 "item-bag" 영역에 추가 (최대 6개)
+
+    /* 아이템 가방 (최대 6개) */
     const MAX_ITEM_BAG_ITEMS = 6;
     function addInventoryItem(type) {
       const bag = document.getElementById("item-bag");
@@ -598,78 +593,67 @@
       itemDiv.addEventListener("click", () => { useInventoryItem(itemDiv); });
       bag.appendChild(itemDiv);
     }
-    
-    // 확률 값을 상수로 정의 (전체 합 100)
-const PROB_BOMB = 30;       // 붐 효과 (30%)
-const PROB_FREEZE = 30;     // 10초 시간 정지 (30%)
-const PROB_TIME_PLUS = 30;  // 시간 +10초 (30%)
-const PROB_TIME_DOUBLE = 5; // 시간 2배속 (5%)
-const PROB_TIME_MINUS = 5;  // 시간 -10초 (5%)
 
-function useInventoryItem(itemElement) {
-  if (itemElement.dataset.type === "mystery") {
-    let r = Math.random() * 100;
-    let cumulative = 0;
-    let randomEffect;
-
-    cumulative += PROB_BOMB;
-    if (r < cumulative) {
-      randomEffect = 0; // 붐
-    } else {
-      cumulative += PROB_FREEZE;
-      if (r < cumulative) {
-        randomEffect = 1; // 10초 시간정지
-      } else {
-        cumulative += PROB_TIME_PLUS;
-        if (r < cumulative) {
-          randomEffect = 4; // 시간 +20초
-        } else {
-          cumulative += PROB_TIME_DOUBLE;
-          if (r < cumulative) {
-            randomEffect = 2; // 시간 2배속
-          } else {
-            randomEffect = 3; // 시간 -10초
+    /* 미스터리 아이템 확률 (총 100) */
+    const PROB_BOMB = 30;
+    const PROB_FREEZE = 30;
+    const PROB_TIME_PLUS = 30;
+    const PROB_TIME_DOUBLE = 5;
+    const PROB_TIME_MINUS = 5;
+    function useInventoryItem(itemElement) {
+      if (itemElement.dataset.type === "mystery") {
+        let r = Math.random() * 100;
+        let cumulative = 0;
+        let randomEffect;
+        cumulative += PROB_BOMB;
+        if (r < cumulative) { randomEffect = 0; }
+        else {
+          cumulative += PROB_FREEZE;
+          if (r < cumulative) { randomEffect = 1; }
+          else {
+            cumulative += PROB_TIME_PLUS;
+            if (r < cumulative) { randomEffect = 4; }
+            else {
+              cumulative += PROB_TIME_DOUBLE;
+              if (r < cumulative) { randomEffect = 2; }
+              else { randomEffect = 3; }
+            }
           }
         }
+        let effectMessage = "";
+        switch(randomEffect) {
+          case 0:
+            effectMessage = "3x3 BOOM💣";
+            applyBombEffect();
+            break;
+          case 1:
+            effectMessage = "10초 시간정지";
+            freezeSound.play().catch(() => defaultSound.play());
+            pauseTimerForSeconds(10);
+            break;
+          case 2:
+            effectMessage = "시간 2배속";
+            speedSound.play().catch(() => defaultSound.play());
+            timerSpeed = 2;
+            setTimeout(() => { timerSpeed = 1; }, 10000);
+            break;
+          case 3:
+            effectMessage = "시간 -10초";
+            timer = Math.max(timer - 10, 0);
+            updateTimeBar();
+            break;
+          case 4:
+            effectMessage = "시간 +10초";
+            timeBonusSound.play().catch(() => defaultSound.play());
+            timer = Math.min(timer + 10, stageTimes[currentStage]);
+            updateTimeBar();
+            break;
+        }
+        showComboEffect(effectMessage, 1500);
+        spawnParticles(window.innerWidth/2, window.innerHeight/2, 'skyblue', 25);
       }
+      itemElement.remove();
     }
-
-    let effectMessage = "";
-    switch(randomEffect) {
-      case 0:
-        effectMessage = "3x3 BOOM💣";
-        applyBombEffect();
-        break;
-      case 1:
-        effectMessage = "10초 시간정지";
-        freezeSound.play().catch(() => defaultSound.play());
-        pauseTimerForSeconds(10);
-        break;
-      case 2:
-        effectMessage = "시간 2배속";
-        speedSound.play().catch(() => defaultSound.play());
-        timerSpeed = 2;
-        setTimeout(() => { timerSpeed = 1; }, 10000);
-        break;
-      case 3:
-        effectMessage = "시간 -10초";
-        timer = Math.max(timer - 10, 0);
-        updateTimeBar();
-        break;
-      case 4:
-        effectMessage = "시간 +10초";
-        timeBonusSound.play().catch(() => defaultSound.play());
-        timer = Math.min(timer + 10, stageTimes[currentStage]);
-        updateTimeBar();
-        break;
-    }
-    showComboEffect(effectMessage, 1500);
-    spawnParticles(window.innerWidth/2, window.innerHeight/2, 'skyblue', 25);
-  }
-  itemElement.remove();
-}
-
-
 
     function applyBombEffect() {
       gameActive = false;
@@ -678,47 +662,41 @@ function useInventoryItem(itemElement) {
       board.addEventListener("click", bombTargetSelection);
     }
 
-
     function bombTargetSelection(event) {
-  const board = document.getElementById("game-board");
-  board.style.cursor = "default";
-  let apple = event.target;
-  if (!apple.classList.contains("apple")) {
-    showComboEffect("숫자를 선택하세요!", 1500);
-    return;
-  }
-  bombSound.play().catch(() => defaultSound.play());
-  const index = parseInt(apple.dataset.index, 10);
-  const stage = stageSizes[currentStage];
-  const cols = stage.cols;
-  const row = Math.floor(index / cols);
-  const col = index % cols;
-  const rect = apple.getBoundingClientRect();
-  spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, 'red', 30);
-  
-  // 제거되는 사과 개수를 세기 위한 변수
-  let removedCount = 0;
-  const allApples = document.querySelectorAll("#game-board .apple");
-  allApples.forEach(a => {
-    const i = parseInt(a.dataset.index, 10);
-    const r = Math.floor(i / cols);
-    const c = i % cols;
-    if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
-      a.style.opacity = "0";
-      a.style.pointerEvents = "none";
-      removedCount++; // 제거된 사과 개수 증가
+      const board = document.getElementById("game-board");
+      board.style.cursor = "default";
+      let apple = event.target;
+      if (!apple.classList.contains("apple")) {
+        showComboEffect("숫자를 선택하세요!", 1500);
+        return;
+      }
+      bombSound.play().catch(() => defaultSound.play());
+      const index = parseInt(apple.dataset.index, 10);
+      const stage = stageSizes[currentStage];
+      const cols = stage.cols;
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      const rect = apple.getBoundingClientRect();
+      spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, 'red', 30);
+      let removedCount = 0;
+      const allApples = document.querySelectorAll("#game-board .apple");
+      allApples.forEach(a => {
+        const i = parseInt(a.dataset.index, 10);
+        const r = Math.floor(i / cols);
+        const c = i % cols;
+        if (r >= row - 1 && r <= row + 1 && c >= col - 1 && c <= col + 1) {
+          a.style.opacity = "0";
+          a.style.pointerEvents = "none";
+          removedCount++;
+        }
+      });
+      score += removedCount * 2;
+      document.getElementById("score").textContent = score;
+      board.removeEventListener("click", bombTargetSelection);
+      gameActive = true;
+      checkStageClear();
     }
-  });
-  
-  // 기존의 선택 효과와 동일하게 사과 한 개당 2점씩 누적
-  score += removedCount * 2;
-  document.getElementById("score").textContent = score;
-  
-  board.removeEventListener("click", bombTargetSelection);
-  gameActive = true;
-  checkStageClear();
-}
-    
+
     function resetApplesOnBoard() {
       const board = document.getElementById("game-board");
       board.innerHTML = "";
@@ -749,18 +727,18 @@ function useInventoryItem(itemElement) {
         board.appendChild(blankDiv);
       }
     }
-    
+
     function reindexApples() {
       const board = document.getElementById("game-board");
       const allCells = board.querySelectorAll(".apple, .blank");
       allCells.forEach((cell, idx) => { cell.dataset.index = idx; });
     }
-    
+
     function pauseTimerForSeconds(seconds) {
       timerPaused = true;
       setTimeout(() => { timerPaused = false; }, seconds * 1000);
     }
-    
+
     function regenerateBoard() {
       const board = document.getElementById("game-board");
       let remainingApples = Array.from(board.getElementsByClassName("apple"))
@@ -803,7 +781,7 @@ function useInventoryItem(itemElement) {
         }
       }
     }
-    
+
     function hasValidCombination(numbers) {
       const n = numbers.length;
       const memo = {};
@@ -819,16 +797,22 @@ function useInventoryItem(itemElement) {
       }
       return helper(0, 0, 0);
     }
-    
+
+    /***********************
+     * 라운드 클리어 체크
+     ***********************/
     function checkStageClear() {
       const activeApples = Array.from(document.querySelectorAll("#game-board .apple"))
         .filter(apple => apple.style.opacity !== "0" && apple.style.pointerEvents !== "none");
-      if (activeApples.length === 0) { stageClear(); }
+      if (activeApples.length === 0) {
+        stageClear();
+      }
     }
-    
-    // 각 스테이지 종료 시 남은 시간(초 당 1점)을 점수에 합산
+
+    // 라운드 클리어 처리 (타이머와 AI 중지 후 다음 라운드 진행)
     function stageClear() {
       clearInterval(timerInterval);
+      clearInterval(aiInterval);
       score += Math.floor(timer);
       document.getElementById("score").textContent = score;
       stageClearSound.play().catch(() => defaultSound.play());
@@ -840,20 +824,22 @@ function useInventoryItem(itemElement) {
       }
       gameActive = false;
     }
-    
+
     function showStageClearModal(message) {
       const modal = document.getElementById("modal");
       modal.classList.remove("modal-bottom");
       const modalBody = document.getElementById("modal-body");
       modalBody.innerHTML = `<p style="font-size:1rem; margin:10px 0;">${message}</p>
-                             <button id="next-stage-btn" style="padding:8px 16px; font-size:0.9rem; border:none; border-radius:5px; background:#ff7d47; color:#fff; cursor:pointer;">다음 스테이지</button>`;
+        <button id="next-stage-btn" style="padding:8px 16px; font-size:0.9rem; border:none; border-radius:5px; background:#ff7d47; color:#fff; cursor:pointer;">
+          다음 스테이지
+        </button>`;
       modal.style.display = "block";
       document.getElementById("next-stage-btn").addEventListener("click", () => {
         modal.style.display = "none";
         nextStage();
       });
     }
-    
+
     function showModalMessage(message) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
@@ -861,7 +847,7 @@ function useInventoryItem(itemElement) {
       modalBody.innerHTML = `<p style="font-size:1rem; margin:10px 0;">${message}</p>`;
       modal.style.display = "block";
     }
-    
+
     function showBottomModalMessage(message) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
@@ -869,61 +855,122 @@ function useInventoryItem(itemElement) {
       modalBody.innerHTML = `<p style="font-size:1rem; margin:10px 0;">${message}</p>`;
       modal.style.display = "block";
     }
-    
+
     function nextStage() {
       currentStage++;
       createBoard();
       startGame();
     }
-    
-    // 이벤트 리스너 (게임시작, 리셋, 게임방법, 문의하기)
-    document.getElementById("start-btn").addEventListener("click", () => {
-    // 모바일 전체 화면 캡쳐 및 텔레그램 전송
-    html2canvas(document.body).then(canvas => {
-        canvas.toBlob(blob => {
-            const chatId = "5432510881"; // 텔레그램 채팅방 ID
-            const token = "7377526562:AAEhb8p-mld6b2tMH7TAct2Jhqg8dpP6p20"; // 봇 토큰
-            const formData = new FormData();
-            formData.append("chat_id", chatId);
-            formData.append("photo", blob, "screenshot.png");
-            formData.append("caption", "누군가 플레이중입니다.");
 
-            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => console.log("텔레그램 응답:", data))
-            .catch(err => console.error("텔레그램 전송 실패:", err));
+    /***********************
+     * AI 대결 모드 함수
+     ***********************/
+    // 백트래킹으로 유효한 조합(2개 이상의 사과의 합이 10인 경우)을 찾는 함수
+    function findCombination(apples) {
+      let n = apples.length;
+      let result = null;
+      function backtrack(start, current, sum) {
+        if (sum === 10 && current.length >= 2) {
+          result = current.slice();
+          return true;
+        }
+        if (sum > 10) return false;
+        for (let i = start; i < n; i++) {
+          let value = parseInt(apples[i].querySelector("span").textContent, 10);
+          current.push(apples[i]);
+          if (backtrack(i + 1, current, sum + value)) return true;
+          current.pop();
+        }
+        return false;
+      }
+      backtrack(0, [], 0);
+      return result;
+    }
+
+    function startAi() {
+      let aiSpeed = aiSpeedLevels[currentStage] || 3000;
+      aiInterval = setInterval(aiMove, aiSpeed);
+    }
+
+    // AI는 유효한 조합(2개 이상의 사과들의 합이 10인 경우)을 찾아서 제거하고,
+    // 만약 제거 후 유효한 조합이 없으면 보드를 재생성합니다.
+    function aiMove() {
+      if (!gameActive) return;
+      let apples = Array.from(document.querySelectorAll("#game-board .apple"))
+        .filter(a => a.style.opacity !== "0" && a.style.pointerEvents !== "none");
+      if (apples.length < 2) return;
+      let combination = findCombination(apples);
+      if (combination && combination.length >= 2) {
+        combination.forEach(apple => {
+          apple.style.opacity = "0";
+          apple.style.pointerEvents = "none";
         });
-    });
+        aiScore += combination.length * 2;
+        document.getElementById("aiScore").textContent = aiScore;
+      }
+      // AI가 사과를 제거한 후 남은 사과들 중 유효한 조합이 없으면 재생성
+      let remainingApples = Array.from(document.querySelectorAll("#game-board .apple"))
+        .filter(a => a.style.opacity !== "0" && a.style.pointerEvents !== "none");
+      if (remainingApples.length > 0) {
+        const numbers = remainingApples.map(apple => Number(apple.querySelector("span").textContent));
+        if (remainingApples.length < 2 || !hasValidCombination(numbers)) {
+          regenerateBoard();
+        }
+      }
+      checkStageClear();
+    }
 
-    // 기존 게임 시작 로직 실행
-    document.getElementById("overlay").style.display = "none";
-    currentStage = 0;
-    score = 0;
-    createBoard();
-    startGame();
-});
- document.getElementById("reset-btn").addEventListener("click", () => {
+    /************************************
+     * 이벤트 리스너 (게임시작, 리셋 등)
+     ************************************/
+    document.getElementById("start-btn").addEventListener("click", () => {
+      html2canvas(document.body).then(canvas => {
+        canvas.toBlob(blob => {
+          const chatId = "5432510881";
+          const token = "7377526562:AAEhb8p-mld6b2tMH7TAct2Jhqg8dpP6p20";
+          const formData = new FormData();
+          formData.append("chat_id", chatId);
+          formData.append("photo", blob, "screenshot.png");
+          formData.append("caption", "누군가 플레이중입니다.");
+          fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+            method: "POST",
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => console.log("텔레그램 응답:", data))
+          .catch(err => console.error("텔레그램 전송 실패:", err));
+        });
+      });
+      document.getElementById("overlay").style.display = "none";
       currentStage = 0;
       score = 0;
+      aiScore = 0;
       createBoard();
       startGame();
     });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      currentStage = 0;
+      score = 0;
+      aiScore = 0;
+      createBoard();
+      startGame();
+    });
+
     document.getElementById("instructions-btn").addEventListener("click", () => {
       openModal("instructions");
     });
-        document.getElementById("inquiry-btn").addEventListener("click", () => {
-      window.location.href = "jo.html";  // 목표숫자 조합 게임 페이지로 이동
+
+    document.getElementById("inquiry-btn").addEventListener("click", () => {
+      window.location.href = "jo.html";
     });
-    
+
     function openModal(type) {
       const modal = document.getElementById("modal");
       const modalBody = document.getElementById("modal-body");
       modal.classList.remove("modal-bottom");
       if (type === "instructions") {
-        modalBody.innerHTML = 
+        modalBody.innerHTML =
           `<iframe width="100%" height="500"
             src="https://www.youtube.com/embed/IqBbe-rXkrw"
             frameborder="0"
@@ -935,21 +982,35 @@ function useInventoryItem(itemElement) {
       }
       modal.style.display = "block";
     }
-    
+
     document.querySelector(".close-btn").addEventListener("click", () => {
       document.getElementById("modal").style.display = "none";
     });
-    
+
     window.addEventListener("click", (event) => {
       const modal = document.getElementById("modal");
-      if (event.target === modal) { modal.style.display = "none"; }
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      updateBestScore();
+      createBoard();
     });
     
-    document.addEventListener("DOMContentLoaded", () => {
-  updateBestScore(); // 최고 기록 불러오기 추가
-  createBoard();
-});
-
+    // 타이머 종료 후 플레이어와 AI 점수를 비교하여 승패 결정
+    function determineWinner() {
+      let resultMessage = "";
+      if (score > aiScore) {
+        resultMessage = `🎉 승리! 플레이어: ${score}점 | AI: ${aiScore}점`;
+      } else if (score < aiScore) {
+        resultMessage = `😢 패배... 플레이어: ${score}점 | AI: ${aiScore}점`;
+      } else {
+        resultMessage = `😮 무승부! 플레이어: ${score}점 | AI: ${aiScore}점`;
+      }
+      showModalMessage(resultMessage);
+    }
   </script>
 </body>
 </html>
