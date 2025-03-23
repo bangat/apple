@@ -113,7 +113,7 @@
       background: #fff;
       position: relative;
     }
-    /* 스테이지 영역 - 라운드 표시 대신 '아이템' */
+    /* 스테이지 영역 - 라운드 표시 대신 "아이템"으로 고정 */
     #stage-indicator {
       display: flex;
       justify-content: space-between;
@@ -127,7 +127,6 @@
       text-shadow: 1px 1px 2px rgba(255,255,255,0.6);
       margin-bottom: 5px;
     }
-    /* 라운드 표시를 "아이템"으로 고정 */
     #round-indicator { text-align: left; }
     #item-bag {
       display: flex;
@@ -327,32 +326,32 @@
       <span>🎮</span>
     </div>
   </div>
-
+  
   <!-- 게임 컨테이너 -->
   <div id="game-container">
     <div id="stage-indicator">
-      <!-- 라운드 표시를 "아이템"으로 변경 -->
+      <!-- 라운드 표시는 "아이템"으로 고정 -->
       <div id="round-indicator">아이템</div>
       <div id="item-bag"></div>
     </div>
     <div id="game-board"></div>
   </div>
-
+  
   <!-- 하단 영역 -->
   <div id="bottom-display">
     점수: <span id="score">0</span> | 최고 기록: <span id="best-score">0</span>
   </div>
-
+  
   <!-- 피버타임 이펙트 -->
   <div id="fever-effect">FEVER TIME!</div>
-
+  
   <!-- 오버레이 -->
   <div id="overlay">
     <button id="start-btn">게임시작</button>
     <button id="instructions-btn">게임방법</button>
     <button id="inquiry-btn">다른게임</button>
   </div>
-
+  
   <!-- 중앙 모달 -->
   <div id="modal" class="modal">
     <div class="modal-content">
@@ -360,13 +359,13 @@
       <div id="modal-body"></div>
     </div>
   </div>
-
+  
   <!-- 콤보 이펙트 -->
   <div id="combo-effect"></div>
-
+  
   <!-- 파티클 컨테이너 -->
   <div id="particle-container"></div>
-
+  
   <script>
     /*************** JavaScript 코드 ***************/
     // 스테이지 시간 및 보드 설정 (6스테이지까지)
@@ -409,7 +408,7 @@
     
     const pastelColors = ["#ffd1dc", "#c1ffc1", "#fff5ba", "#bae1ff", "#f2bbff"];
     
-    // 점수 추가 함수 (피버타임 배수 적용)
+    // 피버타임 동안 점수 추가 함수 (1.5배 적용)
     function addScore(points) {
       if (feverActive) {
         points *= 1.5;
@@ -438,8 +437,15 @@
       gameActive = false;
       timer = stageTimes[currentStage];
       updateTimeBar();
+      // 콤보 카운터는 게임 전체 콤보로 사용 (피버 타임 전까지 유지)
+      // lastComboTime은 개별 콤보 간격을 체크하는 용도로 사용됩니다.
+      // comboCount는 resetFeverTime 시 0으로 초기화됩니다.
+      // 아이템 획득은 comboCount가 3의 배수일 때마다 추가.
+      // 피버 타임은 comboCount가 6 이상일 때 발동.
+      // (즉, 6콤보 시 아이템 2개와 피버 타임 발동)
       comboCount = 0;
       lastComboTime = 0;
+      
       const board = document.getElementById("game-board");
       board.innerHTML = "";
       const stage = stageSizes[currentStage] || stageSizes[stageSizes.length - 1];
@@ -466,7 +472,7 @@
         blankDiv.classList.add("blank");
         board.appendChild(blankDiv);
       }
-      // 라운드 표시를 "아이템"으로 고정
+      // 라운드 표시는 "아이템"으로 고정
       document.getElementById("round-indicator").textContent = "아이템";
     }
     
@@ -599,13 +605,13 @@
       if (comboSound) { comboSound.play().catch(() => defaultSound.play()); }
       showComboEffect("COMBO x" + comboCount + "!", 2000);
       addScore(comboCount * 5);
-      // 피버타임 발동 조건: 연속 6콤보
+      // 아이템 획득: 콤보가 3의 배수일 때마다 추가 (reset하지 않고 누적)
+      if (comboCount % 3 === 0) {
+        addInventoryItem("mystery");
+      }
+      // 피버타임 발동 조건: 연속 6콤보 (reset 후 피버타임 실행)
       if (comboCount >= 6 && !feverActive) {
         startFeverTime();
-        comboCount = 0; // 초기화
-      }
-      if (comboCount >= 3) {
-        addInventoryItem("mystery");
         comboCount = 0;
       }
     }
@@ -741,11 +747,46 @@
       checkStageClear();
     }
     
-    // 힌트 효과 (기존과 동일)
+    // 힌트 효과 – 먼저 인접 조합을 찾고, 부족하면 전체 사과에서 합이 10인 쌍을 찾는 fallback 적용
     function highlightHintPairs() {
       const board = document.getElementById("game-board");
+      let pairs = findAdjacentPairs();
+      if (pairs.length < 3) {
+        const allApples = Array.from(document.querySelectorAll("#game-board .apple"))
+          .filter(a => a.style.opacity !== "0" && a.style.pointerEvents !== "none");
+        let fallbackPairs = [];
+        for (let i = 0; i < allApples.length; i++) {
+          for (let j = i + 1; j < allApples.length; j++) {
+            let val1 = parseInt(allApples[i].querySelector("span").textContent, 10);
+            let val2 = parseInt(allApples[j].querySelector("span").textContent, 10);
+            if (val1 + val2 === 10) {
+              fallbackPairs.push([allApples[i], allApples[j]]);
+            }
+          }
+        }
+        pairs = pairs.concat(fallbackPairs);
+      }
+      pairs = pairs.slice(0, 3);
+      if (pairs.length > 0) {
+        pairs.forEach(pair => {
+          pair[0].classList.add("hint");
+          pair[1].classList.add("hint");
+        });
+        setTimeout(() => {
+          pairs.forEach(pair => {
+            pair[0].classList.remove("hint");
+            pair[1].classList.remove("hint");
+          });
+        }, 3000);
+      } else {
+        showComboEffect("힌트 없음", 1500);
+      }
+    }
+    
+    function findAdjacentPairs() {
+      const board = document.getElementById("game-board");
       const apples = Array.from(board.getElementsByClassName("apple"))
-                          .filter(a => a.style.opacity !== "0" && a.style.pointerEvents !== "none");
+                         .filter(a => a.style.opacity !== "0" && a.style.pointerEvents !== "none");
       const stage = stageSizes[currentStage] || stageSizes[stageSizes.length - 1];
       const rows = stage.rows, cols = stage.cols;
       let pairs = [];
@@ -771,22 +812,7 @@
           }
         }
       });
-      if (pairs.length > 0) {
-        shuffleArray(pairs);
-        let selectedPairs = pairs.slice(0, 3);
-        selectedPairs.forEach(pair => {
-          pair[0].classList.add("hint");
-          pair[1].classList.add("hint");
-        });
-        setTimeout(() => {
-          selectedPairs.forEach(pair => {
-            pair[0].classList.remove("hint");
-            pair[1].classList.remove("hint");
-          });
-        }, 3000);
-      } else {
-        showComboEffect("힌트 없음", 1500);
-      }
+      return pairs;
     }
     
     // 난수 섞기 (Fisher-Yates)
@@ -909,7 +935,7 @@
       const bag = document.getElementById("item-bag");
       const remainingItems = bag.children.length;
       addScore(remainingItems * 30);
-      bag.innerHTML = "";  // 아이템 초기화
+      bag.innerHTML = "";
       
       stageClearSound.play().catch(() => defaultSound.play());
       clearObstacleTimer();
@@ -983,14 +1009,12 @@
       }, 3000);
     }
     
-    // 피버타임 관련 함수 – 연속 6콤보 달성 시 발동, 5초간 지속, 배경과 점수 배수 변경
+    // 피버타임 함수 – 연속 6콤보 달성 시 5초간 발동, 배경과 점수 배수 적용
     function startFeverTime() {
       feverActive = true;
-      // 우주적인 그라데이션 효과 배경 (여러 색상 그라데이션)
-      document.body.style.background = "radial-gradient(circle at center, #0f2027, #203a43, #2c5364)";
+      document.body.style.background = "radial-gradient(circle at center, #1a2a6c, #b21f1f, #fdbb2d)";
       const feverDiv = document.getElementById("fever-effect");
       feverDiv.style.opacity = "1";
-      // 피버타임 5초 유지 후 복원
       feverTimeout = setTimeout(() => {
         feverActive = false;
         document.body.style.background = "#fff";
@@ -1020,6 +1044,7 @@
       document.getElementById("overlay").style.display = "none";
       currentStage = 0;
       score = 0;
+      // 메인 메뉴 복귀 시 헤더와 하단 영역 보이게
       document.getElementById("header").style.display = "flex";
       document.getElementById("bottom-display").style.display = "flex";
       clearObstacleTimer();
